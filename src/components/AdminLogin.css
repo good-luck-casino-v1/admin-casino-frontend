@@ -1,0 +1,148 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #212529;
+  padding: 20px;
+}
+
+.login-main {
+  display: flex;
+  width: 80%;
+  height: 80vh;
+  margin: 5% 10%;
+  background-color: #343a40;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.login-image-column {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #000;
+}
+
+.login-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.login-form-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  background-color: #212529;
+}
+
+.login-logo-container {
+  margin-bottom: 20px;
+}
+
+.login-logo {
+  height: 80px;
+}
+
+.login-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 30px;
+  background: linear-gradient(to right, #28a745, #ffc107);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-align: center;
+}
+
+.login-form {
+  width: 100%;
+  max-width: 400px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.input-group {
+  position: relative;
+}
+
+.input-group-text {
+  background-color: #343a40;
+  border: 1px solid #495057;
+  color: #fff;
+}
+
+.form-control {
+  background-color: #343a40;
+  border: 1px solid #495057;
+  color: #fff;
+}
+
+.form-control:focus {
+  background-color: #343a40;
+  border-color: #ffc107;
+  color: #fff;
+  box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.25);
+}
+
+.password-toggle {
+  background-color: #343a40;
+  border: 1px solid #495057;
+  color: #fff;
+}
+
+.password-toggle:hover {
+  background-color: #495057;
+  color: #fff;
+}
+
+.login-btn {
+  background: linear-gradient(to right, #28a745, #ffc107);
+  border: none;
+  color: #212529;
+  font-weight: bold;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.login-btn:hover {
+  background: linear-gradient(to right, #218838, #e0a800);
+  color: #212529;
+}
+
+.forgot-password {
+  text-align: center;
+  margin-top: 15px;
+}
+
+/* Removed all custom modal styles - using Bootstrap only */
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .login-main {
+    flex-direction: column;
+    width: 95%;
+    height: auto;
+    margin: 2.5% auto;
+  }
+  
+  .login-image-column {
+    height: 200px;
+  }
+  
+  .login-form-column {
+    padding: 20px;
+  }
+  
+  .login-title {
+    font-size: 2rem;
+  }
+}
