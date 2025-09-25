@@ -109,23 +109,32 @@ const AgentManagement = () => {
     }
   };
 
-  const fetchWithdrawals = async () => {
-  try {
-  const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/withdrawals/pending`);
-      setWithdrawals(response.data);
-    } catch (error) {
-      console.error('Error fetching withdrawals:', error);
-    }
-  };
 
-  const fetchTickets = async () => {
-   try {
-  const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/tickets/open`);
-      setTickets(response.data);
-    } catch (error) {
-      console.error('Error fetching tickets:', error);
-    }
-  };
+const fetchWithdrawals = async () => {
+  try {
+    const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/withdrawals/pending`);
+    const data = response.data;
+
+    // make sure withdrawals is always an array
+    setWithdrawals(Array.isArray(data) ? data : data.withdrawals || []);
+  } catch (error) {
+    console.error('Error fetching withdrawals:', error);
+  }
+};
+
+
+const fetchTickets = async () => {
+  try {
+    const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/tickets/open`);
+    const data = response.data;
+
+    // ensure it's always an array
+    setTickets(Array.isArray(data) ? data : data.tickets || []);
+  } catch (error) {
+    console.error('Error fetching tickets:', error);
+  }
+};
+
 
   const fetchPlayers = async (agentId) => {
    try {
@@ -136,38 +145,40 @@ const AgentManagement = () => {
     }
   };
 
-  const applyFilters = () => {
-    let result = [...agents];
-    
-    // Apply search filter
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      result = result.filter(agent => 
-        agent.name.toLowerCase().includes(term) ||
-        agent.email.toLowerCase().includes(term) ||
-        agent.mobile.includes(term) ||
-        agent.commission.toLowerCase().includes(term)
-      );
-    }
-    
-    // Apply commission filter
-    if (commissionFilter) {
-      result = result.filter(agent => agent.commission === commissionFilter);
-    }
-    
-    // Apply performance filter (based on player count)
-    if (performanceFilter) {
-      result = result.filter(agent => {
-        if (performanceFilter === 'high') return agent.player_count > 50;
-        if (performanceFilter === 'medium') return agent.player_count >= 20 && agent.player_count <= 50;
-        if (performanceFilter === 'low') return agent.player_count < 20;
-        return true;
-      });
-    }
-    
-    setFilteredAgents(result);
-    setCurrentPage(1); // Reset to first page when filtering
-  };
+const applyFilters = () => {
+  if (!Array.isArray(agents)) {
+    setFilteredAgents([]);
+    return;
+  }
+
+  let result = [...agents];
+
+  if (searchTerm) {
+    const term = searchTerm.toLowerCase();
+    result = result.filter(agent => 
+      agent.name?.toLowerCase().includes(term) ||
+      agent.email?.toLowerCase().includes(term) ||
+      agent.mobile?.includes(term) ||
+      agent.commission?.toLowerCase().includes(term)
+    );
+  }
+
+  if (commissionFilter) {
+    result = result.filter(agent => agent.commission === commissionFilter);
+  }
+
+  if (performanceFilter) {
+    result = result.filter(agent => {
+      if (performanceFilter === 'high') return agent.player_count > 50;
+      if (performanceFilter === 'medium') return agent.player_count >= 20 && agent.player_count <= 50;
+      if (performanceFilter === 'low') return agent.player_count < 20;
+      return true;
+    });
+  }
+
+  setFilteredAgents(result);
+  setCurrentPage(1);
+};
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -341,14 +352,17 @@ const AgentManagement = () => {
   };
 
   // Filter functions
-  const filteredDeposits = deposits.filter(deposit => {
-    const search = depositSearch.toLowerCase();
-    return (
-      deposit.agent_id.toString().includes(search) ||
-      deposit.agent_name.toLowerCase().includes(search) ||
-      deposit.amount.toString().includes(search)
-    );
-  });
+  const filteredDeposits = Array.isArray(deposits)
+  ? deposits.filter(deposit => {
+      const search = depositSearch.toLowerCase();
+      return (
+        deposit.agent_id.toString().includes(search) ||
+        deposit.agent_name.toLowerCase().includes(search) ||
+        deposit.amount.toString().includes(search)
+      );
+    })
+  : [];
+
 
   const filteredWithdrawals = withdrawals.filter(withdrawal => {
     const search = withdrawalSearch.toLowerCase();
