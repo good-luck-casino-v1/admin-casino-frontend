@@ -1,6 +1,6 @@
 // AdminDashboard.js
 import React, { useState, useEffect, useRef } from 'react';
-import { FaUser, FaLock, FaTicketAlt, FaSignOutAlt, FaEye, FaEdit, FaCheck, FaTimes, FaUserPlus, FaEyeSlash, FaHome, FaUsers, FaUserTie, FaGamepad, FaExchangeAlt, FaShieldAlt } from 'react-icons/fa';
+import { FaUser, FaLock, FaTicketAlt, FaSignOutAlt, FaEye, FaEdit, FaCheck, FaTimes, FaUserPlus, FaEyeSlash, FaHome, FaUsers, FaUserTie, FaGamepad, FaExchangeAlt, FaShieldAlt, FaCreditCard } from 'react-icons/fa'; // Added FaCreditCard
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -12,8 +12,10 @@ import AgentManagementTab from './AgentManagement';
 import GameManagementTab from './GameManagement';
 import TransactionsTab from './Transactions';
 import SecurityTab from './Security';
+import PaymentGatewayTab from './PaymentGateway'; // Import PaymentGatewayTab
 // Import Add Admin Modal
 import AddAdminModal from './AddAdminModal';
+
 const AdminDashboard = () => {
   // Get admin data from localStorage
   const adminData = JSON.parse(localStorage.getItem('adminData')) || {};
@@ -75,7 +77,7 @@ const AdminDashboard = () => {
   
   const fetchTicketCount = async () => {
     try {
-  const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/tickets/count`);
+       const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/tickets/count`);
       setTicketCount(response.data.count);
     } catch (error) {
       console.error('Error fetching ticket count:', error);
@@ -83,8 +85,8 @@ const AdminDashboard = () => {
   };
   
   const fetchTickets = async () => {
-  try {
-  const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/tickets`);
+    try {
+     const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/tickets`);
       // Fix: Use response.data directly instead of response.data.tic
       setTickets(response.data || []); // Add fallback to empty array
     } catch (error) {
@@ -109,14 +111,12 @@ const AdminDashboard = () => {
         formData.append('photo', profilePhoto);
       }
       
-     const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/admin/update`,
-  formData,
-  {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
-
+      const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/admin/update`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
       setAdmin(response.data.admin);
       localStorage.setItem('adminData', JSON.stringify(response.data.admin));
       setShowEditProfileModal(false);
@@ -153,7 +153,7 @@ const AdminDashboard = () => {
       
       console.log('Sending password change request:', { email: passwordRequestData.email, oldPassword: '***', newPassword: '***' });
       
-     await axios.post(`${process.env.REACT_APP_API_URL}/api/admin/change-password`,passwordRequestData);
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/admin/change-password`,passwordRequestData);
       setShowPasswordModal(false);
       toast.success('Password changed successfully!');
       
@@ -179,7 +179,7 @@ const AdminDashboard = () => {
       // Determine the status based on action
       const status = action === 'accept' ? 'closed' : 'reject';
       
-     await axios.put(`${process.env.REACT_APP_API_URL}/api/tickets/${ticketId}/status`,{ 
+      await axios.put(`${process.env.REACT_APP_API_URL}/api/tickets/${ticketId}/status`,{
         status: status,
         action: action 
       });
@@ -216,6 +216,8 @@ const AdminDashboard = () => {
         return <TransactionsTab isSuperAdmin={isSuperAdmin} />;
       case 'Security':
         return <SecurityTab />;
+      case 'PaymentGateway':
+        return <PaymentGatewayTab isSuperAdmin={isSuperAdmin} />;
       default:
         return <DashboardTab admin={admin} />;
     }
@@ -227,8 +229,10 @@ const AdminDashboard = () => {
     { id: 'UserManagement', icon: <FaUsers className="me-2" />, label: 'User Management' },
     { id: 'AgentManagement', icon: <FaUserTie className="me-2" />, label: 'Agent Management' },
     { id: 'GameManagement', icon: <FaGamepad className="me-2" />, label: 'Game Management' },
+    { id: 'PaymentGateway', icon: <FaCreditCard className="me-2" />, label: 'Payment Gateway' },
     { id: 'Transactions', icon: <FaExchangeAlt className="me-2" />, label: 'Transactions' },
     { id: 'Security', icon: <FaShieldAlt className="me-2" />, label: 'Security' }
+     // Added Payment Gateway
   ];
   
   // Mobile navigation items with icons
@@ -237,8 +241,10 @@ const AdminDashboard = () => {
     { id: 'UserManagement', icon: <FaUsers />, label: 'Users' },
     { id: 'AgentManagement', icon: <FaUserTie />, label: 'Agents' },
     { id: 'GameManagement', icon: <FaGamepad />, label: 'Games' },
+     { id: 'PaymentGateway', icon: <FaCreditCard />, label: 'Payment' },
     { id: 'Transactions', icon: <FaExchangeAlt />, label: 'Trans' },
     { id: 'Security', icon: <FaShieldAlt />, label: 'Security' }
+    // Added Payment Gateway
   ];
   
   return (
@@ -379,19 +385,25 @@ const AdminDashboard = () => {
         </div>
       </div>
       
-      {/* Mobile Bottom Navigation */}
-      <nav className="navbar fixed-bottom navbar-dark bg-success d-md-none py-1">
-        <div className="container-fluid">
-          <div className="d-flex justify-content-around w-100">
+      {/* Mobile Bottom Navigation - Updated with smaller icons and text */}
+      <nav className="navbar fixed-bottom navbar-dark bg-success d-md-none py-1" style={{ height: '50px' }}>
+        <div className="container-fluid h-100">
+          <div className="d-flex justify-content-around h-100 align-items-center">
             {mobileNavItems.map((item) => (
               <button
                 key={item.id}
-                className={`btn btn-link text-white p-1 d-flex flex-column align-items-center ${activeTab === item.id ? 'text-success' : ''}`}
+                className={`btn btn-link text-white p-0 d-flex flex-column align-items-center justify-content-center h-100 ${activeTab === item.id ? 'text-success' : ''}`}
                 onClick={() => setActiveTab(item.id)}
-                style={{ fontSize: '0.6rem', textDecoration: 'none', minWidth: '60px' }}
+                style={{ 
+                  fontSize: '0.5rem', 
+                  textDecoration: 'none', 
+                  minWidth: '50px',
+                  maxWidth: '70px',
+                  flex: 1
+                }}
               >
-                <span style={{ fontSize: '1rem' }}>{item.icon}</span>
-                <span className="mt-1">{item.label}</span>
+                <span style={{ fontSize: '0.8rem' }}>{item.icon}</span>
+                <span className="mt-1" style={{ fontSize: '0.5rem', lineHeight: '1' }}>{item.label}</span>
               </button>
             ))}
           </div>
@@ -792,4 +804,5 @@ const AdminDashboard = () => {
     </div>
   );
 };
+
 export default AdminDashboard;

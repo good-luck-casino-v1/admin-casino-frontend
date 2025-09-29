@@ -3,9 +3,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faGamepad, faPlus, faEye, faSearch, faFilter, faRedo,
   faChevronLeft, faChevronRight, faTag, faDollarSign,
-  faImage, faCalendar, faToggleOn, faToggleOff, faIdCard
+  faImage, faCalendar, faToggleOn, faToggleOff, faIdCard,
+  faUpload, faTimes
 } from '@fortawesome/free-solid-svg-icons';
-import { Modal, Button, Form, Alert, Table, Spinner, Row, Col, Badge } from 'react-bootstrap';
+import { Modal, Button, Form, Alert, Table, Spinner, Row, Col, Badge, Image } from 'react-bootstrap';
 import axios from 'axios';
 
 const GameManagement = () => {
@@ -27,11 +28,14 @@ const GameManagement = () => {
     category: '',
     min_bet: '1.00',
     max_bet: '1000.00',
-    image_url: '',
     status: 'active',
     rpt: '0.00',
     game_uid: '' // Added game_uid field
   });
+  
+  // Image state
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [preview, setPreview] = useState(null);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -51,8 +55,8 @@ const GameManagement = () => {
   // Fetch games from API
   const fetchGames = async () => {
     setLoading(true);
-   try {
-  const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/games`,{
+    try {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/games`,{
         params: filters
       });
       setGames(response.data);
@@ -66,8 +70,8 @@ const GameManagement = () => {
   
   // Fetch game count from API
   const fetchGameCount = async () => {
-   try {
-  const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/games/count`);
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/games/count`);
       setGameCount(response.data.count);
     } catch (error) {
       console.error('Error fetching game count:', error);
@@ -85,7 +89,7 @@ const GameManagement = () => {
         game.id.toString().includes(term) ||
         game.name.toLowerCase().includes(term) ||
         game.category.toLowerCase().includes(term) ||
-        (game.game_uid && game.game_uid.toLowerCase().includes(term))
+        (game.gameUid && game.gameUid.toLowerCase().includes(term))
       );
     }
     
@@ -110,11 +114,49 @@ const GameManagement = () => {
     setSearchTerm(e.target.value);
   };
   
+  // Handle file selection
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      // Create a preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+  
+  // Remove selected image
+  const handleRemoveImage = () => {
+    setSelectedFile(null);
+    setPreview(null);
+  };
+  
   // Submit new game form
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    const formDataObj = new FormData();
+    formDataObj.append('name', formData.name);
+    formDataObj.append('category', formData.category);
+    formDataObj.append('min_bet', formData.min_bet);
+    formDataObj.append('max_bet', formData.max_bet);
+    formDataObj.append('status', formData.status);
+    formDataObj.append('rpt', formData.rpt);
+    formDataObj.append('game_uid', formData.game_uid);
+    
+    if (selectedFile) {
+      formDataObj.append('image', selectedFile);
+    }
+    
     try {
-  const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/games`,formData);
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/games/ins`, formDataObj, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
       setAlert({ show: true, message: `Game "${formData.name}" created successfully`, variant: 'success' });
       setShowAddModal(false);
       fetchGames();
@@ -124,11 +166,12 @@ const GameManagement = () => {
         category: '',
         min_bet: '1.00',
         max_bet: '1000.00',
-        image_url: '',
         status: 'active',
         rpt: '0.00',
         game_uid: '' // Reset game_uid
       });
+      setSelectedFile(null);
+      setPreview(null);
     } catch (error) {
       setAlert({ show: true, message: 'Error creating game', variant: 'danger' });
       console.error('Error creating game:', error);
@@ -206,6 +249,27 @@ const GameManagement = () => {
           .modal-body {
             padding: 1rem;
           }
+          
+          .image-preview-container {
+            position: relative;
+            display: inline-block;
+          }
+          
+          .remove-image {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+          }
         }
         
         .dual-color-title {
@@ -214,6 +278,11 @@ const GameManagement = () => {
           background-clip: text;
           color: transparent;
           display: inline-block;
+        }
+        
+        .currency-symbol {
+          color: #ffc107;
+          font-weight: bold;
         }
       `}</style>
       
@@ -316,11 +385,15 @@ const GameManagement = () => {
                     <td className="d-none d-md-table-cell">{game.id}</td>
                     <td>
                       {game.name}
-                      {game.game_uid && <div className="small text-muted">UID: {game.game_uid}</div>}
+                      {game.gameUid && <div className="small text-muted">UID: {game.gameUid}</div>}
                     </td>
                     <td className="d-none d-sm-table-cell">{game.category}</td>
-                    <td>₹{game.min_bet} / ₹{game.max_bet}</td>
-                    <td className="d-none d-md-table-cell">₹{game.rpt}</td>
+                    <td>
+                      <span className="currency-symbol">₹</span>{game.min_bet} / <span className="currency-symbol">₹</span>{game.max_bet}
+                    </td>
+                    <td className="d-none d-md-table-cell">
+                      <span className="currency-symbol">₹</span>{game.rpt}
+                    </td>
                     <td>
                       <Badge bg={game.status === 'active' ? 'success' : 'danger'}>
                         {game.status}
@@ -451,7 +524,7 @@ const GameManagement = () => {
                 <Form.Group>
                   <Form.Label>
                     <FontAwesomeIcon icon={faDollarSign} className="me-2" />
-                    Min Bet (₹)
+                    Min Bet (<span className="currency-symbol">₹</span>)
                   </Form.Label>
                   <Form.Control
                     type="number"
@@ -469,7 +542,7 @@ const GameManagement = () => {
                 <Form.Group>
                   <Form.Label>
                     <FontAwesomeIcon icon={faDollarSign} className="me-2" />
-                    Max Bet (₹)
+                    Max Bet (<span className="currency-symbol">₹</span>)
                   </Form.Label>
                   <Form.Control
                     type="number"
@@ -488,16 +561,31 @@ const GameManagement = () => {
             <Form.Group className="mb-3">
               <Form.Label>
                 <FontAwesomeIcon icon={faImage} className="me-2" />
-                Image URL
+                Game Image
               </Form.Label>
-              <Form.Control
-                type="text"
-                name="image_url"
-                value={formData.image_url}
-                onChange={handleInputChange}
-                placeholder="https://example.com/image.jpg"
-                className="bg-dark text-light"
-              />
+              <div className="d-flex align-items-center">
+                <Form.Control
+                  type="file"
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="bg-dark text-light me-2"
+                />
+                <FontAwesomeIcon icon={faUpload} className="text-warning" />
+              </div>
+              
+              {preview && (
+                <div className="mt-3 image-preview-container">
+                  <Image src={preview} thumbnail style={{ maxHeight: '150px' }} />
+                  <Button 
+                    variant="danger" 
+                    size="sm" 
+                    className="remove-image"
+                    onClick={handleRemoveImage}
+                  >
+                    <FontAwesomeIcon icon={faTimes} />
+                  </Button>
+                </div>
+              )}
             </Form.Group>
             
             <Row className="mb-3">
@@ -522,7 +610,7 @@ const GameManagement = () => {
                 <Form.Group>
                   <Form.Label>
                     <FontAwesomeIcon icon={faDollarSign} className="me-2" />
-                    RPT (₹)
+                    RPT (<span className="currency-symbol">₹</span>)
                   </Form.Label>
                   <Form.Control
                     type="number"
@@ -571,7 +659,7 @@ const GameManagement = () => {
               </Row>
               <Row className="mb-2">
                 <Col sm={4}><strong>Game UID:</strong></Col>
-                <Col sm={8}>{selectedGame.game_uid || 'Not provided'}</Col>
+                <Col sm={8}>{selectedGame.gameUid || 'Not provided'}</Col>
               </Row>
               <Row className="mb-2">
                 <Col sm={4}><strong>Category:</strong></Col>
@@ -579,15 +667,15 @@ const GameManagement = () => {
               </Row>
               <Row className="mb-2">
                 <Col sm={4}><strong>Min Bet:</strong></Col>
-                <Col sm={8}>₹{selectedGame.min_bet}</Col>
+                <Col sm={8}><span className="currency-symbol">₹</span>{selectedGame.min_bet}</Col>
               </Row>
               <Row className="mb-2">
                 <Col sm={4}><strong>Max Bet:</strong></Col>
-                <Col sm={8}>₹{selectedGame.max_bet}</Col>
+                <Col sm={8}><span className="currency-symbol">₹</span>{selectedGame.max_bet}</Col>
               </Row>
               <Row className="mb-2">
                 <Col sm={4}><strong>RPT:</strong></Col>
-                <Col sm={8}>₹{selectedGame.rpt}</Col>
+                <Col sm={8}><span className="currency-symbol">₹</span>{selectedGame.rpt}</Col>
               </Row>
               <Row className="mb-2">
                 <Col sm={4}><strong>Status:</strong></Col>
@@ -598,13 +686,17 @@ const GameManagement = () => {
                 </Col>
               </Row>
               <Row className="mb-2">
-                <Col sm={4}><strong>Image URL:</strong></Col>
+                <Col sm={4}><strong>Game Image:</strong></Col>
                 <Col sm={8}>
                   {selectedGame.image_url ? (
-                    <a href={selectedGame.image_url} target="_blank" rel="noopener noreferrer" className="text-light">
-                      View Image
-                    </a>
-                  ) : 'No image provided'}
+                    <Image 
+                      src={selectedGame.image_url} 
+                      thumbnail 
+                      style={{ maxHeight: '150px' }} 
+                    />
+                  ) : (
+                    <p>No image provided</p>
+                  )}
                 </Col>
               </Row>
               <Row className="mb-2">

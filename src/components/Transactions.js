@@ -212,7 +212,7 @@ const Transactions = () => {
       if (status === 'completed' && response.data.newBalance !== null) {
         setAlert({ 
           show: true, 
-          message: `Transaction completed. New wallet balance: $${response.data.newBalance}`, 
+          message: `Transaction completed. New wallet balance: ₹${response.data.newBalance}`, 
           variant: 'success' 
         });
       }
@@ -447,7 +447,7 @@ const Transactions = () => {
                                   {transaction.type}
                                 </Badge>
                               </td>
-                              <td>${transaction.amount}</td>
+                              <td>₹{transaction.amount}</td>
                               <td className="d-none d-sm-table-cell">{transaction.payment_method || 'N/A'}</td>
                               <td>
                                 <Badge bg={
@@ -610,7 +610,7 @@ const Transactions = () => {
                             <tr key={transaction.id}>
                               <td>{agentIndexOfFirstItem + index + 1}</td>
                               <td>{transaction.agent_id}</td>
-                              <td>${transaction.amount}</td>
+                              <td>₹{transaction.amount}</td>
                               <td>
                                 <Badge bg={transaction.type === 'deposit' ? 'success' : 'danger'}>
                                   {transaction.type}
@@ -700,7 +700,7 @@ const Transactions = () => {
               </Row>
               <Row className="mb-2">
                 <Col sm={4}><strong>Amount:</strong></Col>
-                <Col sm={8}>${selectedTransaction.amount}</Col>
+                <Col sm={8}>₹{selectedTransaction.amount}</Col>
               </Row>
               <Row className="mb-2">
                 <Col sm={4}><strong>Payment Method:</strong></Col>
@@ -798,7 +798,7 @@ const Transactions = () => {
                   </Row>
                   <Row className="mb-2">
                     <Col sm={4}><strong>Amount:</strong></Col>
-                    <Col sm={8}>${selectedAgentTransaction.amount}</Col>
+                    <Col sm={8}>₹{selectedAgentTransaction.amount}</Col>
                   </Row>
                   <Row className="mb-2">
                     <Col sm={4}><strong>Status:</strong></Col>
@@ -842,7 +842,7 @@ const Transactions = () => {
                   </Row>
                   <Row className="mb-2">
                     <Col sm={4}><strong>Amount:</strong></Col>
-                    <Col sm={8}>${selectedAgentTransaction.amount}</Col>
+                    <Col sm={8}>₹{selectedAgentTransaction.amount}</Col>
                   </Row>
                   <Row className="mb-2">
                     <Col sm={4}><strong>Status:</strong></Col>

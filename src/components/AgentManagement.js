@@ -1286,7 +1286,7 @@ const applyFilters = () => {
               </Row>
               <Row className="mb-2">
                 <Col sm={4}><strong>Amount:</strong></Col>
-                <Col sm={8}>{selectedDeposit.amount}</Col>
+                <Col sm={8}>₹{selectedDeposit.amount}</Col>
               </Row>
               <Row className="mb-2">
                 <Col sm={4}><strong>Status:</strong></Col>

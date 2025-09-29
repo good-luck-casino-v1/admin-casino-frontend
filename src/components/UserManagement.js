@@ -4,7 +4,8 @@ import {
   faUserPlus, faTimes, faUser, faEnvelope, faPhone, 
   faCalendar, faLock, faWallet, faSearch, faFilter, 
   faEye, faBan, faMoneyBillWave, faTicketAlt, faRedo,
-  faChevronLeft, faChevronRight, faCheck, faTimes as faTimesIcon
+  faChevronLeft, faChevronRight, faCheck, faTimes as faTimesIcon,
+  faIdCard, faPlus, faMinus
 } from '@fortawesome/free-solid-svg-icons';
 import { Modal, Button, Form, Alert, Table, Dropdown, Badge, Spinner, Nav, Row, Col } from 'react-bootstrap';
 import axios from 'axios';
@@ -42,6 +43,9 @@ const UserManagement = () => {
   const [transactionsPage, setTransactionsPage] = useState(1);
   const transactionsPerPage = 10;
   
+  // Deposit/Withdraw state
+  const [depositWithdrawAmount, setDepositWithdrawAmount] = useState('');
+  
   // Fetch users and count on component mount and when filters/search change
   useEffect(() => {
     fetchUsers();
@@ -57,7 +61,7 @@ const UserManagement = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-  const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/users`,{
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/users`,{
         params: filters
       });
       setUsers(response.data);
@@ -71,8 +75,8 @@ const UserManagement = () => {
   
   // Fetch user count from API
   const fetchUserCount = async () => {
-   try {
-  const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/users/count`);
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/users/count`);
       setUserCount(response.data.count);
     } catch (error) {
       console.error('Error fetching user count:', error);
@@ -118,8 +122,8 @@ const UserManagement = () => {
   // Submit new user form
   const handleSubmit = async (e) => {
     e.preventDefault();
-   try {
-  const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/users`,formData);
+    try {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/users`,formData);
       setAlert({ show: true, message: `User created with ${formData.name}`, variant: 'success' });
       setShowModal(false);
       fetchUsers();
@@ -144,7 +148,7 @@ const UserManagement = () => {
       let endpoint = '';
       switch (columnType) {
         case 'details':
-          endpoint = `${process.env.REACT_APP_API_URL}/api/users/${userId}/details`;
+         endpoint = `${process.env.REACT_APP_API_URL}/api/users/${userId}/details`;
           break;
         case 'completedTransactions':
           endpoint = `${process.env.REACT_APP_API_URL}/api/users/${userId}/transactions/completed`;
@@ -248,6 +252,33 @@ const UserManagement = () => {
     } catch (error) {
       console.error('Error updating user status:', error);
       setAlert({ show: true, message: 'Error updating user status', variant: 'danger' });
+    }
+  };
+  
+  // Handle deposit/withdraw
+  const handleDepositWithdraw = async (type) => {
+    if (!depositWithdrawAmount || isNaN(depositWithdrawAmount) || parseFloat(depositWithdrawAmount) <= 0) {
+      setAlert({ show: true, message: 'Please enter a valid amount', variant: 'danger' });
+      return;
+    }
+
+    try {
+      const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/users/${currentUser.id}/wallet`, {
+        type,
+        amount: parseFloat(depositWithdrawAmount)
+      });
+
+      setAlert({ show: true, message: `${type} successful`, variant: 'success' });
+      
+      // Reset the amount input
+      setDepositWithdrawAmount('');
+      
+      // Refresh the user details and transactions
+      fetchViewData(currentUser.id, 'details');
+      fetchViewData(currentUser.id, 'completedTransactions');
+    } catch (error) {
+      setAlert({ show: true, message: `Error during ${type}`, variant: 'danger' });
+      console.error('Error during deposit/withdraw:', error);
     }
   };
   
@@ -644,6 +675,9 @@ const UserManagement = () => {
             <Nav.Item>
               <Nav.Link eventKey="pendingTransactions">Pending</Nav.Link>
             </Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="depositWithdraw">Deposit/Withdraw</Nav.Link>
+            </Nav.Item>
           </Nav>
           
           {currentUser && viewData[currentUser.id] && (
@@ -673,7 +707,7 @@ const UserManagement = () => {
                   </Row>
                   <Row className="mb-2">
                     <Col sm={4}><strong>Wallet Balance:</strong></Col>
-                    <Col sm={8}>${viewData[currentUser.id].details.wallet_balance}</Col>
+                    <Col sm={8}>₹{viewData[currentUser.id].details.wallet_balance}</Col>
                   </Row>
                   <Row className="mb-2">
                     <Col sm={4}><strong>Referred By:</strong></Col>
@@ -731,7 +765,7 @@ const UserManagement = () => {
                             .map((tx, index) => (
                             <tr key={index}>
                               <td>{tx.type}</td>
-                              <td>${tx.amount}</td>
+                              <td>₹{tx.amount}</td>
                               <td className="d-none d-md-table-cell">{tx.created_at}</td>
                             </tr>
                           ))}
@@ -847,7 +881,7 @@ const UserManagement = () => {
                         {viewData[currentUser.id].pendingTransactions.map((tx) => (
                           <tr key={tx.id}>
                             <td>{tx.type}</td>
-                            <td>${tx.amount}</td>
+                            <td>₹{tx.amount}</td>
                             <td className="d-none d-md-table-cell">{tx.payment_method}</td>
                             <td className="d-none d-sm-table-cell">{tx.utr}</td>
                             <td>
@@ -881,6 +915,59 @@ const UserManagement = () => {
                   ) : (
                     <p className="text-muted">No pending transactions found</p>
                   )}
+                </div>
+              )}
+              
+              {activeTab === 'depositWithdraw' && viewData[currentUser.id].details && (
+                <div>
+                  <h5 className="text-warning">Deposit/Withdraw</h5>
+                  <Row className="mb-2">
+                    <Col sm={4}><FontAwesomeIcon icon={faIdCard} /> ID:</Col>
+                    <Col sm={8}>{viewData[currentUser.id].details.id}</Col>
+                  </Row>
+                  <Row className="mb-2">
+                    <Col sm={4}><FontAwesomeIcon icon={faUser} /> Name:</Col>
+                    <Col sm={8}>{viewData[currentUser.id].details.name}</Col>
+                  </Row>
+                  <Row className="mb-2">
+                    <Col sm={4}><FontAwesomeIcon icon={faEnvelope} /> Email:</Col>
+                    <Col sm={8}>{viewData[currentUser.id].details.email}</Col>
+                  </Row>
+                  <Row className="mb-2">
+                    <Col sm={4}><FontAwesomeIcon icon={faPhone} /> Mobile:</Col>
+                    <Col sm={8}>{viewData[currentUser.id].details.mobile}</Col>
+                  </Row>
+                  <Row className="mb-2">
+                    <Col sm={4}><FontAwesomeIcon icon={faWallet} /> Wallet Balance:</Col>
+                    <Col sm={8}>₹{viewData[currentUser.id].details.wallet_balance}</Col>
+                  </Row>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label><FontAwesomeIcon icon={faMoneyBillWave} /> Amount</Form.Label>
+                    <Form.Control
+                      type="number"
+                      placeholder="Enter amount"
+                      value={depositWithdrawAmount}
+                      onChange={(e) => setDepositWithdrawAmount(e.target.value)}
+                      className="bg-dark text-light border-secondary"
+                    />
+                  </Form.Group>
+
+                  <div className="d-flex">
+                    <Button 
+                      variant="success" 
+                      className="me-2"
+                      onClick={() => handleDepositWithdraw('deposit')}
+                    >
+                      <FontAwesomeIcon icon={faPlus} /> Deposit
+                    </Button>
+                    <Button 
+                      variant="danger"
+                      onClick={() => handleDepositWithdraw('withdraw')}
+                    >
+                      <FontAwesomeIcon icon={faMinus} /> Withdraw
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
