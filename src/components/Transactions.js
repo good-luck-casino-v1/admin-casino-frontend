@@ -61,8 +61,8 @@ const Transactions = () => {
   // Fetch transactions from API
   const fetchTransactions = async () => {
     setLoading(true);
-   try {
-  const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/transactions`,{
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/transactions`,{
         params: { ...filters, status: activeSubTab }
       });
       setTransactions(response.data);
@@ -78,8 +78,8 @@ const Transactions = () => {
   const fetchAgentTransactions = async () => {
     setAgentLoading(true);
     try {
-  const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/transactions/agent`,{
-      params: { status: activeSubTab }
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/transactions/agent`,{
+        params: { status: activeSubTab }
       });
       setAgentTransactions(response.data);
       setAgentLoading(false);
@@ -93,7 +93,7 @@ const Transactions = () => {
   // Fetch transaction count from API
   const fetchTransactionCount = async () => {
     try {
-  const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/transactions/count`);
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/transactions/count`);
       setTransactionCount(response.data.count);
     } catch (error) {
       console.error('Error fetching transaction count:', error);
@@ -187,7 +187,7 @@ const Transactions = () => {
     
     // Fetch additional details based on transaction type
     try {
-      if (transaction.type === 'deposit') {
+      if (transaction.type === 'deposit') { 
         const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/transactions/agent/deposit/${transaction.id}`);
         setSelectedAgentTransaction(response.data);
       } else {
@@ -270,6 +270,7 @@ const Transactions = () => {
   
   // Format date and time
   const formatDateTime = (dateTimeString) => {
+    if (!dateTimeString) return 'N/A';
     return new Date(dateTimeString).toLocaleString();
   };
   
@@ -621,9 +622,52 @@ const Transactions = () => {
                                   variant="info"
                                   size="sm"
                                   onClick={() => openAgentModal(transaction)}
+                                  className="me-1"
                                 >
                                   <FontAwesomeIcon icon={faEye} />
                                 </Button>
+                                {transaction.status && transaction.status.toLowerCase() === 'pending' && transaction.type === 'deposit' && (
+                                  <>
+                                    <Button 
+                                      variant="success" 
+                                      size="sm" 
+                                      className="me-1"
+                                      onClick={() => handleAgentDepositStatusUpdate(transaction.id, 'completed')}
+                                      title="Accept Deposit"
+                                    >
+                                      <FontAwesomeIcon icon={faCheck} />
+                                    </Button>
+                                    <Button 
+                                      variant="danger" 
+                                      size="sm"
+                                      onClick={() => handleAgentDepositStatusUpdate(transaction.id, 'reject')}
+                                      title="Reject Deposit"
+                                    >
+                                      <FontAwesomeIcon icon={faTimes} />
+                                    </Button>
+                                  </>
+                                )}
+                                {transaction.status && transaction.status.toLowerCase() === 'pending' && transaction.type === 'withdraw' && (
+                                  <>
+                                    <Button 
+                                      variant="success" 
+                                      size="sm" 
+                                      className="me-1"
+                                      onClick={() => handleCommissionPaymentStatusUpdate(transaction.id, 'completed')}
+                                      title="Accept Withdraw"
+                                    >
+                                      <FontAwesomeIcon icon={faCheck} />
+                                    </Button>
+                                    <Button 
+                                      variant="danger" 
+                                      size="sm"
+                                      onClick={() => handleCommissionPaymentStatusUpdate(transaction.id, 'reject')}
+                                      title="Reject Withdraw"
+                                    >
+                                      <FontAwesomeIcon icon={faTimes} />
+                                    </Button>
+                                  </>
+                                )}
                               </td>
                             </tr>
                           )) : (
@@ -885,49 +929,50 @@ const Transactions = () => {
           )}
         </Modal.Body>
         <Modal.Footer className="bg-dark">
-  <Button variant="secondary" onClick={() => setShowAgentModal(false)}>
-    Close
-  </Button>
-  {selectedAgentTransaction && !selectedAgentTransaction.loading && selectedAgentTransaction.status === 'pending' && (
-    <>
-      {selectedAgentTransaction.type === 'deposit' ? (
-        <>
-          <Button 
-            variant="success" 
-            className="me-2 action-button"
-            onClick={() => handleAgentDepositStatusUpdate(selectedAgentTransaction.id, 'completed')}
-          >
-            <FontAwesomeIcon icon={faCheck} /> Accept
+          <Button variant="secondary" onClick={() => setShowAgentModal(false)}>
+            Close
           </Button>
-          <Button 
-            variant="danger"
-            className="action-button"
-            onClick={() => handleAgentDepositStatusUpdate(selectedAgentTransaction.id, 'reject')}
-          >
-            <FontAwesomeIcon icon={faTimes} /> Reject
-          </Button>
-        </>
-      ) : (
-        <>
-          <Button 
-            variant="success" 
-            className="me-2 action-button"
-            onClick={() => handleCommissionPaymentStatusUpdate(selectedAgentTransaction.id, 'completed')}
-          >
-            <FontAwesomeIcon icon={faCheck} /> Accept
-          </Button>
-          <Button 
-            variant="danger"
-            className="action-button"
-            onClick={() => handleCommissionPaymentStatusUpdate(selectedAgentTransaction.id, 'reject')}
-          >
-            <FontAwesomeIcon icon={faTimes} /> Reject
-          </Button>
-        </>
-      )}
-    </>
-  )}
-</Modal.Footer>
+          {selectedAgentTransaction && !selectedAgentTransaction.loading && 
+           selectedAgentTransaction.status && selectedAgentTransaction.status.toLowerCase() === 'pending' && (
+            <>
+              {selectedAgentTransaction.type === 'deposit' ? (
+                <>
+                  <Button 
+                    variant="success" 
+                    className="me-2 action-button"
+                    onClick={() => handleAgentDepositStatusUpdate(selectedAgentTransaction.id, 'completed')}
+                  >
+                    <FontAwesomeIcon icon={faCheck} /> Accept Deposit
+                  </Button>
+                  <Button 
+                    variant="danger"
+                    className="action-button"
+                    onClick={() => handleAgentDepositStatusUpdate(selectedAgentTransaction.id, 'reject')}
+                  >
+                    <FontAwesomeIcon icon={faTimes} /> Reject Deposit
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button 
+                    variant="success" 
+                    className="me-2 action-button"
+                    onClick={() => handleCommissionPaymentStatusUpdate(selectedAgentTransaction.id, 'completed')}
+                  >
+                    <FontAwesomeIcon icon={faCheck} /> Accept Withdraw
+                  </Button>
+                  <Button 
+                    variant="danger"
+                    className="action-button"
+                    onClick={() => handleCommissionPaymentStatusUpdate(selectedAgentTransaction.id, 'reject')}
+                  >
+                    <FontAwesomeIcon icon={faTimes} /> Reject Withdraw
+                  </Button>
+                </>
+              )}
+            </>
+          )}
+        </Modal.Footer>
       </Modal>
     </div>
   );

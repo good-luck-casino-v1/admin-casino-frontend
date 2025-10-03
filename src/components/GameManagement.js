@@ -4,7 +4,7 @@ import {
   faGamepad, faPlus, faEye, faSearch, faFilter, faRedo,
   faChevronLeft, faChevronRight, faTag, faDollarSign,
   faImage, faCalendar, faToggleOn, faToggleOff, faIdCard,
-  faUpload, faTimes
+  faUpload, faTimes, faEdit
 } from '@fortawesome/free-solid-svg-icons';
 import { Modal, Button, Form, Alert, Table, Spinner, Row, Col, Badge, Image } from 'react-bootstrap';
 import axios from 'axios';
@@ -16,21 +16,32 @@ const GameManagement = () => {
   const [gameCount, setGameCount] = useState(0);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [alert, setAlert] = useState({ show: false, message: '', variant: '' });
   const [filters, setFilters] = useState({ category: '', status: '' });
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedGame, setSelectedGame] = useState(null);
   
-  // Form state
+  // Form state for Add Game
   const [formData, setFormData] = useState({
     name: '',
+    gameCode: '',
+    providerCode: '',
     category: '',
-    min_bet: '1.00',
-    max_bet: '1000.00',
-    status: 'active',
-    rpt: '0.00',
-    game_uid: '' // Added game_uid field
+    bet_amount: '100.00',
+    status: 'active'
+  });
+  
+  // Form state for Update Game
+  const [updateData, setUpdateData] = useState({
+    id: '',
+    name: '',
+    gameCode: '',
+    providerCode: '',
+    category: '',
+    bet_amount: '',
+    image_url: ''
   });
   
   // Image state
@@ -56,7 +67,7 @@ const GameManagement = () => {
   const fetchGames = async () => {
     setLoading(true);
     try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/games`,{
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/games`, {
         params: filters
       });
       setGames(response.data);
@@ -89,7 +100,8 @@ const GameManagement = () => {
         game.id.toString().includes(term) ||
         game.name.toLowerCase().includes(term) ||
         game.category.toLowerCase().includes(term) ||
-        (game.gameUid && game.gameUid.toLowerCase().includes(term))
+        (game.gameCode && game.gameCode.toLowerCase().includes(term)) ||
+        (game.providerCode && game.providerCode.toLowerCase().includes(term))
       );
     }
     
@@ -97,10 +109,16 @@ const GameManagement = () => {
     setCurrentPage(1); // Reset to first page when filtering
   };
   
-  // Handle form input changes
+  // Handle form input changes for Add Game
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+  };
+  
+  // Handle form input changes for Update Game
+  const handleUpdateChange = (e) => {
+    const { name, value } = e.target;
+    setUpdateData({ ...updateData, [name]: value });
   };
   
   // Handle filter changes
@@ -140,12 +158,11 @@ const GameManagement = () => {
     
     const formDataObj = new FormData();
     formDataObj.append('name', formData.name);
+    formDataObj.append('gameCode', formData.gameCode);
+    formDataObj.append('providerCode', formData.providerCode);
     formDataObj.append('category', formData.category);
-    formDataObj.append('min_bet', formData.min_bet);
-    formDataObj.append('max_bet', formData.max_bet);
+    formDataObj.append('bet_amount', formData.bet_amount);
     formDataObj.append('status', formData.status);
-    formDataObj.append('rpt', formData.rpt);
-    formDataObj.append('game_uid', formData.game_uid);
     
     if (selectedFile) {
       formDataObj.append('image', selectedFile);
@@ -163,18 +180,49 @@ const GameManagement = () => {
       fetchGameCount();
       setFormData({
         name: '',
+        gameCode: '',
+        providerCode: '',
         category: '',
-        min_bet: '1.00',
-        max_bet: '1000.00',
-        status: 'active',
-        rpt: '0.00',
-        game_uid: '' // Reset game_uid
+        bet_amount: '100.00',
+        status: 'active'
       });
       setSelectedFile(null);
       setPreview(null);
     } catch (error) {
       setAlert({ show: true, message: 'Error creating game', variant: 'danger' });
       console.error('Error creating game:', error);
+    }
+  };
+  
+  // Submit update game form
+  const handleUpdateSubmit = async (e) => {
+    e.preventDefault();
+    
+    const formDataObj = new FormData();
+    formDataObj.append('name', updateData.name);
+    formDataObj.append('gameCode', updateData.gameCode);
+    formDataObj.append('providerCode', updateData.providerCode);
+    formDataObj.append('category', updateData.category);
+    formDataObj.append('bet_amount', updateData.bet_amount);
+    
+    if (selectedFile) {
+      formDataObj.append('image', selectedFile);
+    }
+    
+    try {
+      const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/games/${updateData.id}`, formDataObj, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      setAlert({ show: true, message: `Game "${updateData.name}" updated successfully`, variant: 'success' });
+      setShowUpdateModal(false);
+      fetchGames();
+      setSelectedFile(null);
+      setPreview(null);
+    } catch (error) {
+      setAlert({ show: true, message: 'Error updating game', variant: 'danger' });
+      console.error('Error updating game:', error);
     }
   };
   
@@ -188,6 +236,20 @@ const GameManagement = () => {
   const openViewModal = (game) => {
     setSelectedGame(game);
     setShowViewModal(true);
+  };
+  
+  // Open update modal for a game
+  const openUpdateModal = (game) => {
+    setUpdateData({
+      id: game.id,
+      name: game.name,
+      gameCode: game.gameCode || '',
+      providerCode: game.providerCode || '',
+      category: game.category,
+      bet_amount: game.bet_amount,
+      image_url: game.image_url
+    });
+    setShowUpdateModal(true);
   };
   
   // Handle game status toggle
@@ -349,7 +411,7 @@ const GameManagement = () => {
             </span>
             <Form.Control
               type="text"
-              placeholder="Search by ID, name, category or UID"
+              placeholder="Search by ID, name, category or codes"
               value={searchTerm}
               onChange={handleSearch}
               className="bg-dark text-light"
@@ -373,8 +435,8 @@ const GameManagement = () => {
                   <th className="d-none d-md-table-cell">ID</th>
                   <th>Name</th>
                   <th className="d-none d-sm-table-cell">Category</th>
-                  <th>Min/Max Bet</th>
-                  <th className="d-none d-md-table-cell">RPT</th>
+                  <th>Bet Amount</th>
+                  <th className="d-none d-md-table-cell">Game Code</th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
@@ -385,15 +447,13 @@ const GameManagement = () => {
                     <td className="d-none d-md-table-cell">{game.id}</td>
                     <td>
                       {game.name}
-                      {game.gameUid && <div className="small text-muted">UID: {game.gameUid}</div>}
+                      {game.gameCode && <div className="small text-muted">Code: {game.gameCode}</div>}
                     </td>
                     <td className="d-none d-sm-table-cell">{game.category}</td>
                     <td>
-                      <span className="currency-symbol">₹</span>{game.min_bet} / <span className="currency-symbol">₹</span>{game.max_bet}
+                      <span className="currency-symbol">₹</span>{game.bet_amount}
                     </td>
-                    <td className="d-none d-md-table-cell">
-                      <span className="currency-symbol">₹</span>{game.rpt}
-                    </td>
+                    <td className="d-none d-md-table-cell">{game.gameCode || '-'}</td>
                     <td>
                       <Badge bg={game.status === 'active' ? 'success' : 'danger'}>
                         {game.status}
@@ -407,6 +467,14 @@ const GameManagement = () => {
                         className="me-1"
                       >
                         <FontAwesomeIcon icon={faEye} /> <span className="d-none d-sm-inline">View</span>
+                      </Button>
+                      <Button
+                        variant="warning"
+                        size="sm"
+                        onClick={() => openUpdateModal(game)}
+                        className="me-1"
+                      >
+                        <FontAwesomeIcon icon={faEdit} /> <span className="d-none d-sm-inline">Update</span>
                       </Button>
                       <Button
                         variant={game.status === 'active' ? 'warning' : 'success'}
@@ -482,20 +550,40 @@ const GameManagement = () => {
               />
             </Form.Group>
             
-            <Form.Group className="mb-3">
-              <Form.Label>
-                <FontAwesomeIcon icon={faIdCard} className="me-2" />
-                Game UID
-              </Form.Label>
-              <Form.Control
-                type="text"
-                name="game_uid"
-                value={formData.game_uid}
-                onChange={handleInputChange}
-                placeholder="Enter unique game identifier"
-                className="bg-dark text-light"
-              />
-            </Form.Group>
+            <Row className="mb-3">
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label>
+                    <FontAwesomeIcon icon={faIdCard} className="me-2" />
+                    Game Code
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="gameCode"
+                    value={formData.gameCode}
+                    onChange={handleInputChange}
+                    placeholder="Enter game code"
+                    className="bg-dark text-light"
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label>
+                    <FontAwesomeIcon icon={faIdCard} className="me-2" />
+                    Provider Code
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="providerCode"
+                    value={formData.providerCode}
+                    onChange={handleInputChange}
+                    placeholder="Enter provider code"
+                    className="bg-dark text-light"
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
             
             <Form.Group className="mb-3">
               <Form.Label>
@@ -519,44 +607,22 @@ const GameManagement = () => {
               </Form.Select>
             </Form.Group>
             
-            <Row className="mb-3">
-              <Col md={6}>
-                <Form.Group>
-                  <Form.Label>
-                    <FontAwesomeIcon icon={faDollarSign} className="me-2" />
-                    Min Bet (<span className="currency-symbol">₹</span>)
-                  </Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="min_bet"
-                    value={formData.min_bet}
-                    onChange={handleInputChange}
-                    step="0.01"
-                    min="0.01"
-                    required
-                    className="bg-dark text-light"
-                  />
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group>
-                  <Form.Label>
-                    <FontAwesomeIcon icon={faDollarSign} className="me-2" />
-                    Max Bet (<span className="currency-symbol">₹</span>)
-                  </Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="max_bet"
-                    value={formData.max_bet}
-                    onChange={handleInputChange}
-                    step="0.01"
-                    min="0.01"
-                    required
-                    className="bg-dark text-light"
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
+            <Form.Group className="mb-3">
+              <Form.Label>
+                <FontAwesomeIcon icon={faDollarSign} className="me-2" />
+                Bet Amount (<span className="currency-symbol">₹</span>)
+              </Form.Label>
+              <Form.Control
+                type="number"
+                name="bet_amount"
+                value={formData.bet_amount}
+                onChange={handleInputChange}
+                step="0.01"
+                min="0.01"
+                required
+                className="bg-dark text-light"
+              />
+            </Form.Group>
             
             <Form.Group className="mb-3">
               <Form.Label>
@@ -588,42 +654,21 @@ const GameManagement = () => {
               )}
             </Form.Group>
             
-            <Row className="mb-3">
-              <Col md={6}>
-                <Form.Group>
-                  <Form.Label>
-                    <FontAwesomeIcon icon={faToggleOn} className="me-2" />
-                    Status
-                  </Form.Label>
-                  <Form.Select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleInputChange}
-                    className="bg-dark text-light"
-                  >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </Form.Select>
-                </Form.Group>
-              </Col>
-              <Col md={6}>
-                <Form.Group>
-                  <Form.Label>
-                    <FontAwesomeIcon icon={faDollarSign} className="me-2" />
-                    RPT (<span className="currency-symbol">₹</span>)
-                  </Form.Label>
-                  <Form.Control
-                    type="number"
-                    name="rpt"
-                    value={formData.rpt}
-                    onChange={handleInputChange}
-                    step="0.01"
-                    min="0.00"
-                    className="bg-dark text-light"
-                  />
-                </Form.Group>
-              </Col>
-            </Row>
+            <Form.Group className="mb-3">
+              <Form.Label>
+                <FontAwesomeIcon icon={faToggleOn} className="me-2" />
+                Status
+              </Form.Label>
+              <Form.Select
+                name="status"
+                value={formData.status}
+                onChange={handleInputChange}
+                className="bg-dark text-light"
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </Form.Select>
+            </Form.Group>
             
             <div className="d-flex justify-content-end">
               <Button variant="secondary" onClick={() => setShowAddModal(false)} className="me-2">
@@ -658,20 +703,20 @@ const GameManagement = () => {
                 <Col sm={8}>{selectedGame.name}</Col>
               </Row>
               <Row className="mb-2">
-                <Col sm={4}><strong>Game UID:</strong></Col>
-                <Col sm={8}>{selectedGame.gameUid || 'Not provided'}</Col>
+                <Col sm={4}><strong>Game Code:</strong></Col>
+                <Col sm={8}>{selectedGame.gameCode || 'Not provided'}</Col>
+              </Row>
+              <Row className="mb-2">
+                <Col sm={4}><strong>Provider Code:</strong></Col>
+                <Col sm={8}>{selectedGame.providerCode || 'Not provided'}</Col>
               </Row>
               <Row className="mb-2">
                 <Col sm={4}><strong>Category:</strong></Col>
                 <Col sm={8}>{selectedGame.category}</Col>
               </Row>
               <Row className="mb-2">
-                <Col sm={4}><strong>Min Bet:</strong></Col>
-                <Col sm={8}><span className="currency-symbol">₹</span>{selectedGame.min_bet}</Col>
-              </Row>
-              <Row className="mb-2">
-                <Col sm={4}><strong>Max Bet:</strong></Col>
-                <Col sm={8}><span className="currency-symbol">₹</span>{selectedGame.max_bet}</Col>
+                <Col sm={4}><strong>Bet Amount:</strong></Col>
+                <Col sm={8}><span className="currency-symbol">₹</span>{selectedGame.bet_amount}</Col>
               </Row>
               <Row className="mb-2">
                 <Col sm={4}><strong>RPT:</strong></Col>
@@ -707,10 +752,164 @@ const GameManagement = () => {
           )}
         </Modal.Body>
         <Modal.Footer className="bg-dark">
+          <Button variant="warning" onClick={() => openUpdateModal(selectedGame)}>
+            <FontAwesomeIcon icon={faEdit} className="me-2" />
+            Update Game
+          </Button>
           <Button variant="secondary" onClick={() => setShowViewModal(false)}>
             Close
           </Button>
         </Modal.Footer>
+      </Modal>
+      
+      {/* Update Game Modal */}
+      <Modal show={showUpdateModal} onHide={() => setShowUpdateModal(false)} centered>
+        <Modal.Header closeButton className="bg-warning text-dark">
+          <Modal.Title>
+            <FontAwesomeIcon icon={faEdit} className="me-2" />
+            Update Game
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="bg-dark text-light">
+          <Form onSubmit={handleUpdateSubmit}>
+            <Form.Group className="mb-3">
+              <Form.Label>
+                <FontAwesomeIcon icon={faGamepad} className="me-2" />
+                Game Name
+              </Form.Label>
+              <Form.Control
+                type="text"
+                name="name"
+                value={updateData.name}
+                onChange={handleUpdateChange}
+                required
+                className="bg-dark text-light"
+              />
+            </Form.Group>
+            
+            <Row className="mb-3">
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label>
+                    <FontAwesomeIcon icon={faIdCard} className="me-2" />
+                    Game Code
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="gameCode"
+                    value={updateData.gameCode}
+                    onChange={handleUpdateChange}
+                    className="bg-dark text-light"
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label>
+                    <FontAwesomeIcon icon={faIdCard} className="me-2" />
+                    Provider Code
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="providerCode"
+                    value={updateData.providerCode}
+                    onChange={handleUpdateChange}
+                    className="bg-dark text-light"
+                  />
+                </Form.Group>
+              </Col>
+            </Row>
+            
+            <Form.Group className="mb-3">
+              <Form.Label>
+                <FontAwesomeIcon icon={faTag} className="me-2" />
+                Category
+              </Form.Label>
+              <Form.Select
+                name="category"
+                value={updateData.category}
+                onChange={handleUpdateChange}
+                required
+                className="bg-dark text-light"
+              >
+                <option value="">Select Category</option>
+                <option value="slots">Slots</option>
+                <option value="table">Table</option>
+                <option value="casino">Casino</option>
+                <option value="card">Card</option>
+                <option value="number">Number</option>
+                <option value="tournaments">Tournaments</option>
+              </Form.Select>
+            </Form.Group>
+            
+            <Form.Group className="mb-3">
+              <Form.Label>
+                <FontAwesomeIcon icon={faDollarSign} className="me-2" />
+                Bet Amount (<span className="currency-symbol">₹</span>)
+              </Form.Label>
+              <Form.Control
+                type="number"
+                name="bet_amount"
+                value={updateData.bet_amount}
+                onChange={handleUpdateChange}
+                step="0.01"
+                min="0.01"
+                required
+                className="bg-dark text-light"
+              />
+            </Form.Group>
+            
+            <Form.Group className="mb-3">
+              <Form.Label>
+                <FontAwesomeIcon icon={faImage} className="me-2" />
+                Game Image
+              </Form.Label>
+              <div className="d-flex align-items-center">
+                <Form.Control
+                  type="file"
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="bg-dark text-light me-2"
+                />
+                <FontAwesomeIcon icon={faUpload} className="text-warning" />
+              </div>
+              
+              {preview ? (
+                <div className="mt-3 image-preview-container">
+                  <Image src={preview} thumbnail style={{ maxHeight: '150px' }} />
+                  <Button 
+                    variant="danger" 
+                    size="sm" 
+                    className="remove-image"
+                    onClick={handleRemoveImage}
+                  >
+                    <FontAwesomeIcon icon={faTimes} />
+                  </Button>
+                </div>
+              ) : updateData.image_url ? (
+                <div className="mt-3">
+                   {/* Now directly use the stored S3 URL */}
+                 <Image 
+                    src={updateData.image_url} 
+                    thumbnail 
+                    style={{ maxHeight: '150px' }} 
+                  />
+                </div>
+              ) : (
+                <p className="mt-2 text-muted">No image selected</p>
+              )}
+            </Form.Group>
+            
+            <div className="d-flex justify-content-end">
+              <Button variant="secondary" onClick={() => setShowUpdateModal(false)} className="me-2">
+                Cancel
+              </Button>
+              <Button type="submit" variant="warning">
+                Update Game
+              </Button>
+            </div>
+          </Form>
+        </Modal.Body>
       </Modal>
     </div>
   );
