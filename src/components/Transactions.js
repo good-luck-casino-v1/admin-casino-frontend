@@ -777,9 +777,14 @@ const Transactions = () => {
                 <Col sm={4}><strong>Screenshot:</strong></Col>
                 <Col sm={8}>
                   {selectedTransaction.screenshot ? (
-                    <a href={selectedTransaction.screenshot} target="_blank" rel="noopener noreferrer" className="text-light">
-                      View Screenshot
-                    </a>
+                    
+                  <a
+                    href={`${process.env.SPACES_CDN}/${selectedTransaction.screenshot}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View Screenshot
+                  </a>
                   ) : 'No screenshot provided'}
                 </Col>
               </Row>

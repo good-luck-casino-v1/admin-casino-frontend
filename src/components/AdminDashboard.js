@@ -331,6 +331,7 @@ const AdminDashboard = () => {
                     onClick={() => {
                       setShowTicketsModal(true);
                       setShowDropdown(false);
+                      
                     }}
                   >
                     <FaTicketAlt className="me-2" /> Tickets
@@ -485,7 +486,8 @@ const AdminDashboard = () => {
                   {editProfile.photo ? (
                     <img 
                       src={`/images/admin/${editProfile.photo}`} 
-                      alt="Admin" 
+
+
                       className="rounded-circle" 
                       width="100" 
                       height="100"
@@ -759,18 +761,22 @@ const AdminDashboard = () => {
                   <p>{selectedTicket.message}</p>
                 </div>
                 
-                {selectedTicket.evidence && (
-                  <div className="mb-3">
-                    <h6>Evidence:</h6>
-                    <img 
-                      src={`/images/tickets/${selectedTicket.evidence}`} 
-                      alt="Evidence" 
-                      className="img-fluid rounded"
-                      style={{ maxHeight: '300px' }}
-                    />
-                  </div>
-                )}
+              {selectedTicket.evidence_url && (
+              <div className="mb-3">
+                <h6>Evidence:</h6>
+                <img
+                  src={selectedTicket.evidence_url}
+                  alt="Evidence"
+                  className="img-fluid rounded border border-success"
+                  style={{ maxHeight: '300px', objectFit: 'contain' }}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = '/images/no-image.png';
+                  }}
+                />
               </div>
+            )}
+            </div>
               
               {/* Modal Footer with Action Buttons */}
               {selectedTicket.status === 'open' && (

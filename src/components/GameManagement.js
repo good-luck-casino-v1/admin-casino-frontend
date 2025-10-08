@@ -386,7 +386,7 @@ const GameManagement = () => {
                 <option value="">All Categories</option>
                 <option value="slots">Slots</option>
                 <option value="table">Table</option>
-                <option value="casino">Casino</option>
+                <option value="live-casino">Casino</option>
                 <option value="card">Card</option>
                 <option value="number">Number</option>
                 <option value="tournaments">Tournaments</option>
@@ -600,7 +600,7 @@ const GameManagement = () => {
                 <option value="">Select Category</option>
                 <option value="slots">Slots</option>
                 <option value="table">Table</option>
-                <option value="casino">Casino</option>
+                <option value="live-casino">Casino</option>
                 <option value="card">Card</option>
                 <option value="number">Number</option>
                 <option value="tournaments">Tournaments</option>
@@ -835,7 +835,7 @@ const GameManagement = () => {
                 <option value="">Select Category</option>
                 <option value="slots">Slots</option>
                 <option value="table">Table</option>
-                <option value="casino">Casino</option>
+                <option value="live-casino">Casino</option>
                 <option value="card">Card</option>
                 <option value="number">Number</option>
                 <option value="tournaments">Tournaments</option>
@@ -915,4 +915,6 @@ const GameManagement = () => {
   );
 };
 
+
 export default GameManagement;
+

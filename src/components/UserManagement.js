@@ -828,9 +828,13 @@ const UserManagement = () => {
                             <td className="d-none d-sm-table-cell">{ticket.email}</td>
                             <td>
                               {ticket.evidence ? (
-                                <a href={ticket.evidence} target="_blank" rel="noopener noreferrer" className="text-light">
-                                  View
-                                </a>
+                                <a href={ticket.evidence} target="_blank" rel="noopener noreferrer">
+                                <img
+                                  src={ticket.evidence}
+                                  alt="Evidence"
+                                  style={{ width: "80px", height: "60px", objectFit: "cover", borderRadius: "5px" }}
+                                />
+                              </a>
                               ) : 'N/A'}
                             </td>
                             <td>
