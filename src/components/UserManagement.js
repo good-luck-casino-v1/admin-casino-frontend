@@ -667,7 +667,7 @@ const UserManagement = () => {
               <Nav.Link eventKey="details">Details</Nav.Link>
             </Nav.Item>
             <Nav.Item>
-              <Nav.Link eventKey="completedTransactions">Transactions</Nav.Link>
+              <Nav.Link eventKey="depositWithdraw">Deposit/Withdraw</Nav.Link>
             </Nav.Item>
             <Nav.Item>
               <Nav.Link eventKey="tickets">Tickets</Nav.Link>
@@ -676,7 +676,7 @@ const UserManagement = () => {
               <Nav.Link eventKey="pendingTransactions">Pending</Nav.Link>
             </Nav.Item>
             <Nav.Item>
-              <Nav.Link eventKey="depositWithdraw">Deposit/Withdraw</Nav.Link>
+              <Nav.Link eventKey="completedTransactions">Transactions</Nav.Link>
             </Nav.Item>
           </Nav>
           
@@ -746,61 +746,56 @@ const UserManagement = () => {
                 </div>
               )}
               
-              {activeTab === 'completedTransactions' && viewData[currentUser.id].completedTransactions && (
+              {activeTab === 'depositWithdraw' && viewData[currentUser.id].details && (
                 <div>
-                  <h5 className="text-warning">Completed Transactions</h5>
-                  {viewData[currentUser.id].completedTransactions.length > 0 ? (
-                    <>
-                      <Table striped bordered hover size="sm" variant="dark" className="mobile-detail-table">
-                        <thead>
-                          <tr>
-                            <th>Type</th>
-                            <th>Amount</th>
-                            <th className="d-none d-md-table-cell">Date</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {viewData[currentUser.id].completedTransactions
-                            .slice(indexOfFirstTransaction, indexOfLastTransaction)
-                            .map((tx, index) => (
-                            <tr key={index}>
-                              <td>{tx.type}</td>
-                              <td>₹{tx.amount}</td>
-                              <td className="d-none d-md-table-cell">{tx.created_at}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </Table>
-                      
-                      {/* Transactions Pagination */}
-                      {viewData[currentUser.id].completedTransactions.length > transactionsPerPage && (
-                        <div className="d-flex justify-content-between align-items-center mt-3">
-                          <div>
-                            Showing {indexOfFirstTransaction + 1} to {Math.min(indexOfLastTransaction, viewData[currentUser.id].completedTransactions.length)} of {viewData[currentUser.id].completedTransactions.length} entries
-                          </div>
-                          <div className="d-flex">
-                            <Button 
-                              variant="outline-light" 
-                              onClick={() => paginateTransactions(transactionsPage - 1)} 
-                              disabled={transactionsPage === 1}
-                              className="me-2"
-                            >
-                              <FontAwesomeIcon icon={faChevronLeft} /> Previous
-                            </Button>
-                            <Button 
-                              variant="outline-light" 
-                              onClick={() => paginateTransactions(transactionsPage + 1)} 
-                              disabled={transactionsPage === Math.ceil(viewData[currentUser.id].completedTransactions.length / transactionsPerPage)}
-                            >
-                              Next <FontAwesomeIcon icon={faChevronRight} />
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <p className="text-muted">No completed transactions found</p>
-                  )}
+                  <h5 className="text-warning">Deposit/Withdraw</h5>
+                  <Row className="mb-2">
+                    <Col sm={4}><FontAwesomeIcon icon={faIdCard} /> ID:</Col>
+                    <Col sm={8}>{viewData[currentUser.id].details.id}</Col>
+                  </Row>
+                  <Row className="mb-2">
+                    <Col sm={4}><FontAwesomeIcon icon={faUser} /> Name:</Col>
+                    <Col sm={8}>{viewData[currentUser.id].details.name}</Col>
+                  </Row>
+                  <Row className="mb-2">
+                    <Col sm={4}><FontAwesomeIcon icon={faEnvelope} /> Email:</Col>
+                    <Col sm={8}>{viewData[currentUser.id].details.email}</Col>
+                  </Row>
+                  <Row className="mb-2">
+                    <Col sm={4}><FontAwesomeIcon icon={faPhone} /> Mobile:</Col>
+                    <Col sm={8}>{viewData[currentUser.id].details.mobile}</Col>
+                  </Row>
+                  <Row className="mb-2">
+                    <Col sm={4}><FontAwesomeIcon icon={faWallet} /> Wallet Balance:</Col>
+                    <Col sm={8}>₹{viewData[currentUser.id].details.wallet_balance}</Col>
+                  </Row>
+
+                  <Form.Group className="mb-3">
+                    <Form.Label><FontAwesomeIcon icon={faMoneyBillWave} /> Amount</Form.Label>
+                    <Form.Control
+                      type="number"
+                      placeholder="Enter amount"
+                      value={depositWithdrawAmount}
+                      onChange={(e) => setDepositWithdrawAmount(e.target.value)}
+                      className="bg-dark text-light border-secondary"
+                    />
+                  </Form.Group>
+
+                  <div className="d-flex">
+                    <Button 
+                      variant="success" 
+                      className="me-2"
+                      onClick={() => handleDepositWithdraw('deposit')}
+                    >
+                      <FontAwesomeIcon icon={faPlus} /> Deposit
+                    </Button>
+                    <Button 
+                      variant="danger"
+                      onClick={() => handleDepositWithdraw('withdraw')}
+                    >
+                      <FontAwesomeIcon icon={faMinus} /> Withdraw
+                    </Button>
+                  </div>
                 </div>
               )}
               
@@ -826,16 +821,22 @@ const UserManagement = () => {
                             <td>{ticket.subject}</td>
                             <td className="d-none d-md-table-cell">{ticket.message}</td>
                             <td className="d-none d-sm-table-cell">{ticket.email}</td>
-                            <td>
-                              {ticket.evidence ? (
-                                <a href={ticket.evidence} target="_blank" rel="noopener noreferrer">
-                                <img
-                                  src={ticket.evidence}
-                                  alt="Evidence"
-                                  style={{ width: "80px", height: "60px", objectFit: "cover", borderRadius: "5px" }}
-                                />
-                              </a>
-                              ) : 'N/A'}
+                               <td>
+                             {ticket.evidence ? (
+                          <a 
+                          href={ticket.evidence_url || `${process.env.REACT_APP_SPACES_CDN}/${ticket.evidence}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          <img
+                            src={ticket.evidence_url || `${process.env.REACT_APP_SPACES_CDN}/${ticket.evidence}`}
+                            alt="Evidence"
+                            style={{ width: "80px", height: "60px", objectFit: "cover", borderRadius: "5px" }}
+                          />
+                        </a>
+
+                        ) : 'N/A'}
+
                             </td>
                             <td>
                               <>
@@ -922,56 +923,61 @@ const UserManagement = () => {
                 </div>
               )}
               
-              {activeTab === 'depositWithdraw' && viewData[currentUser.id].details && (
+              {activeTab === 'completedTransactions' && viewData[currentUser.id].completedTransactions && (
                 <div>
-                  <h5 className="text-warning">Deposit/Withdraw</h5>
-                  <Row className="mb-2">
-                    <Col sm={4}><FontAwesomeIcon icon={faIdCard} /> ID:</Col>
-                    <Col sm={8}>{viewData[currentUser.id].details.id}</Col>
-                  </Row>
-                  <Row className="mb-2">
-                    <Col sm={4}><FontAwesomeIcon icon={faUser} /> Name:</Col>
-                    <Col sm={8}>{viewData[currentUser.id].details.name}</Col>
-                  </Row>
-                  <Row className="mb-2">
-                    <Col sm={4}><FontAwesomeIcon icon={faEnvelope} /> Email:</Col>
-                    <Col sm={8}>{viewData[currentUser.id].details.email}</Col>
-                  </Row>
-                  <Row className="mb-2">
-                    <Col sm={4}><FontAwesomeIcon icon={faPhone} /> Mobile:</Col>
-                    <Col sm={8}>{viewData[currentUser.id].details.mobile}</Col>
-                  </Row>
-                  <Row className="mb-2">
-                    <Col sm={4}><FontAwesomeIcon icon={faWallet} /> Wallet Balance:</Col>
-                    <Col sm={8}>₹{viewData[currentUser.id].details.wallet_balance}</Col>
-                  </Row>
-
-                  <Form.Group className="mb-3">
-                    <Form.Label><FontAwesomeIcon icon={faMoneyBillWave} /> Amount</Form.Label>
-                    <Form.Control
-                      type="number"
-                      placeholder="Enter amount"
-                      value={depositWithdrawAmount}
-                      onChange={(e) => setDepositWithdrawAmount(e.target.value)}
-                      className="bg-dark text-light border-secondary"
-                    />
-                  </Form.Group>
-
-                  <div className="d-flex">
-                    <Button 
-                      variant="success" 
-                      className="me-2"
-                      onClick={() => handleDepositWithdraw('deposit')}
-                    >
-                      <FontAwesomeIcon icon={faPlus} /> Deposit
-                    </Button>
-                    <Button 
-                      variant="danger"
-                      onClick={() => handleDepositWithdraw('withdraw')}
-                    >
-                      <FontAwesomeIcon icon={faMinus} /> Withdraw
-                    </Button>
-                  </div>
+                  <h5 className="text-warning">Completed Transactions</h5>
+                  {viewData[currentUser.id].completedTransactions.length > 0 ? (
+                    <>
+                      <Table striped bordered hover size="sm" variant="dark" className="mobile-detail-table">
+                        <thead>
+                          <tr>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th className="d-none d-md-table-cell">Date</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {viewData[currentUser.id].completedTransactions
+                            .slice(indexOfFirstTransaction, indexOfLastTransaction)
+                            .map((tx, index) => (
+                            <tr key={index}>
+                              <td>{tx.type}</td>
+                              <td>₹{tx.amount}</td>
+                              <td className="d-none d-md-table-cell">{tx.created_at}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </Table>
+                      
+                      {/* Transactions Pagination */}
+                      {viewData[currentUser.id].completedTransactions.length > transactionsPerPage && (
+                        <div className="d-flex justify-content-between align-items-center mt-3">
+                          <div>
+                            Showing {indexOfFirstTransaction + 1} to {Math.min(indexOfLastTransaction, viewData[currentUser.id].completedTransactions.length)} of {viewData[currentUser.id].completedTransactions.length} entries
+                          </div>
+                          <div className="d-flex">
+                            <Button 
+                              variant="outline-light" 
+                              onClick={() => paginateTransactions(transactionsPage - 1)} 
+                              disabled={transactionsPage === 1}
+                              className="me-2"
+                            >
+                              <FontAwesomeIcon icon={faChevronLeft} /> Previous
+                            </Button>
+                            <Button 
+                              variant="outline-light" 
+                              onClick={() => paginateTransactions(transactionsPage + 1)} 
+                              disabled={transactionsPage === Math.ceil(viewData[currentUser.id].completedTransactions.length / transactionsPerPage)}
+                            >
+                              Next <FontAwesomeIcon icon={faChevronRight} />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-muted">No completed transactions found</p>
+                  )}
                 </div>
               )}
             </div>

@@ -206,18 +206,16 @@ const Transactions = () => {
   const handleTransactionStatusUpdate = async (transactionId, status) => {
     try {
       const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/transactions/${transactionId}/status`, { status });
-      setAlert({ show: true, message: `Transaction ${status} successfully`, variant: 'success' });
       
-      // If transaction was completed and wallet balance was updated, show additional info
+      // Prepare the success message
+      let message = `Transaction ${status} successfully`;
       if (status === 'completed' && response.data.newBalance !== null) {
-        setAlert({ 
-          show: true, 
-          message: `Transaction completed. New wallet balance: ₹${response.data.newBalance}`, 
-          variant: 'success' 
-        });
+        message = `Transaction completed. New wallet balance: ₹${response.data.newBalance}`;
       }
       
+      setAlert({ show: true, message, variant: 'success' });
       fetchTransactions(); // Refresh transactions list
+      setShowViewModal(false); // Close modal after successful operation
     } catch (error) {
       console.error('Error updating transaction status:', error);
       setAlert({ show: true, message: 'Error updating transaction status', variant: 'danger' });
@@ -230,7 +228,7 @@ const Transactions = () => {
       await axios.put(`${process.env.REACT_APP_API_URL}/api/transactions/agent/deposit/${depositId}/status`, { status });
       setAlert({ show: true, message: `Agent deposit ${status} successfully`, variant: 'success' });
       fetchAgentTransactions(); // Refresh agent transactions list
-      setShowAgentModal(false); // Close modal
+      setShowAgentModal(false); // Close modal after successful operation
     } catch (error) {
       console.error('Error updating agent deposit status:', error);
       setAlert({ show: true, message: 'Error updating agent deposit status', variant: 'danger' });
@@ -243,7 +241,7 @@ const Transactions = () => {
       await axios.put(`${process.env.REACT_APP_API_URL}/api/transactions/agent/commission/${paymentId}/status`, { status });
       setAlert({ show: true, message: `Agent withdraw ${status} successfully`, variant: 'success' });
       fetchAgentTransactions(); // Refresh agent transactions list
-      setShowAgentModal(false); // Close modal
+      setShowAgentModal(false); // Close modal after successful operation
     } catch (error) {
       console.error('Error updating agent withdraw status:', error);
       setAlert({ show: true, message: 'Error updating agent withdraw status', variant: 'danger' });
@@ -272,6 +270,27 @@ const Transactions = () => {
   const formatDateTime = (dateTimeString) => {
     if (!dateTimeString) return 'N/A';
     return new Date(dateTimeString).toLocaleString();
+  };
+  
+  // Format payment details (JSON) for display
+  const formatPaymentDetails = (paymentDetails) => {
+    if (!paymentDetails) return 'N/A';
+    
+    try {
+      const details = JSON.parse(paymentDetails);
+      return (
+        <div>
+          {Object.entries(details).map(([key, value]) => (
+            <div key={key}>
+              <strong>{key}:</strong> {value}
+            </div>
+          ))}
+        </div>
+      );
+    } catch (e) {
+      // If parsing fails, return the raw string
+      return paymentDetails;
+    }
   };
   
   return (
@@ -325,6 +344,15 @@ const Transactions = () => {
           align-items: center;
           justify-content: center;
           gap: 5px;
+        }
+        
+        .payment-details-container {
+          max-height: 200px;
+          overflow-y: auto;
+          background-color: rgba(0, 0, 0, 0.3);
+          padding: 10px;
+          border-radius: 5px;
+          border: 1px solid #444;
         }
       `}</style>
       
@@ -771,23 +799,27 @@ const Transactions = () => {
               </Row>
               <Row className="mb-2">
                 <Col sm={4}><strong>Payment Details:</strong></Col>
-                <Col sm={8}>{selectedTransaction.payment_details || 'N/A'}</Col>
-              </Row>
-              <Row className="mb-2">
-                <Col sm={4}><strong>Screenshot:</strong></Col>
                 <Col sm={8}>
-                  {selectedTransaction.screenshot ? (
-                    
-                  <a
-                    href={`${process.env.SPACES_CDN}/${selectedTransaction.screenshot}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    View Screenshot
-                  </a>
-                  ) : 'No screenshot provided'}
+                  <div className="payment-details-container">
+                    {formatPaymentDetails(selectedTransaction.payment_details)}
+                  </div>
                 </Col>
               </Row>
+              <Row className="mb-2">
+                  <Col sm={4}><strong>Screenshot:</strong></Col>
+                  <Col sm={8}>
+                    {selectedTransaction.screenshot ? (
+                      <a
+                        href={selectedTransaction.screenshot_url || `${process.env.REACT_APP_SPACES_CDN}/${selectedTransaction.screenshot}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-light"
+                      >
+                        View Screenshot
+                      </a>
+                    ) : 'No screenshot provided'}
+                  </Col>
+                </Row>
               <Row className="mb-2">
                 <Col sm={4}><strong>Created At:</strong></Col>
                 <Col sm={8}>{formatDateTime(selectedTransaction.created_at)}</Col>
@@ -860,20 +892,21 @@ const Transactions = () => {
                       </Badge>
                     </Col>
                   </Row>
-                  <Row className="mb-2">
-                    <Col sm={4}><strong>UTR:</strong></Col>
-                    <Col sm={8}>{selectedAgentTransaction.utr || 'N/A'}</Col>
-                  </Row>
-                  <Row className="mb-2">
-                    <Col sm={4}><strong>Screenshot:</strong></Col>
-                    <Col sm={8}>
-                      {selectedAgentTransaction.screenshot ? (
-                        <a href={selectedAgentTransaction.screenshot} target="_blank" rel="noopener noreferrer" className="text-light">
-                          View Screenshot
-                        </a>
-                      ) : 'No screenshot provided'}
-                    </Col>
-                  </Row>
+                              <Row className="mb-2">
+  <Col sm={4}><strong>Screenshot:</strong></Col>
+  <Col sm={8}>
+    {selectedAgentTransaction.screenshot ? (
+      <a
+        href={selectedAgentTransaction.screenshot_url || `${process.env.REACT_APP_SPACES_CDN}/${selectedAgentTransaction.screenshot}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-light"
+      >
+        View Screenshot
+      </a>
+    ) : 'No screenshot provided'}
+  </Col>
+</Row>
                   <Row className="mb-2">
                     <Col sm={4}><strong>Created At:</strong></Col>
                     <Col sm={8}>{formatDateTime(selectedAgentTransaction.created_at)}</Col>

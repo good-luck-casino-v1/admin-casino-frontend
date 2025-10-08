@@ -144,6 +144,11 @@ const AdminDashboard = () => {
     }
     
     try {
+      const token = localStorage.getItem('token');
+        if (!token) {
+      toast.error('You are not logged in. Please log in again.');
+      return;
+    }
       // Include the admin's email in the request
       const passwordRequestData = {
         oldPassword: passwordData.oldPassword,
@@ -153,7 +158,14 @@ const AdminDashboard = () => {
       
       console.log('Sending password change request:', { email: passwordRequestData.email, oldPassword: '***', newPassword: '***' });
       
-      await axios.post(`${process.env.REACT_APP_API_URL}/api/admin/change-password`,passwordRequestData);
+        await axios.post(`${process.env.REACT_APP_API_URL}/api/admin/change-password`,passwordRequestData,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`, // Include token
+        },
+      }
+    );
       setShowPasswordModal(false);
       toast.success('Password changed successfully!');
       
@@ -252,17 +264,26 @@ const AdminDashboard = () => {
       {/* First Navbar - Fixed */}
       <nav className="navbar navbar-expand-lg navbar-dark bg-success fixed-top">
         <div className="container-fluid">
-          <div className="d-flex align-items-center ms-3">
-            <img 
-              src="/images/goodluck-logo.png" 
-              alt="GoodLuck Casino" 
-              height="40" 
-              className="me-2"
-            />
-            <span className="navbar-brand fw-bold" style={{ color: '#FFD700' }}>
-              GoodLuck Casino
-            </span>
-          </div>
+       <div className="d-flex align-items-center ms-3">
+  <img 
+    src="/images/goodluck-logo.png" 
+    alt="GoodLuck Casino" 
+    height="40" 
+    className="me-2"
+  />
+
+  {/* Desktop text */}
+  <span className="navbar-brand fw-bold d-none d-md-inline" style={{ color: '#FFD700' }}>
+    GoodLuck Casino
+  </span>
+
+  {/* Mobile text */}
+  <span className="navbar-brand fw-bold d-inline d-md-none" style={{ color: '#FFD700' }}>
+    GLC
+  </span>
+</div>
+
+
           
           {/* Custom Dropdown */}
           <div className="dropdown me-3" ref={dropdownRef}>

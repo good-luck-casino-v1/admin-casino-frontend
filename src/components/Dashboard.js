@@ -4,19 +4,22 @@ import {
   faUsers, faUserTie, faUserShield, faUserSecret, faGamepad,
   faMoneyBillWave, faChartLine, faTicketAlt, faExchangeAlt, 
   faCalendarAlt, faEye, faCheckCircle, faTimesCircle, 
-  faClock, faSpinner, faSearch, faPlus
+  faClock, faSpinner, faSearch, faPlus, faUserCheck, faUserTimes
 } from '@fortawesome/free-solid-svg-icons';
 import { Card, Row, Col, Table, Badge, Button, Alert, Spinner, Form, Modal } from 'react-bootstrap';
 import axios from 'axios';
 
-
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState({
     totalUsers: 0,
+    activeUsers: 0,
+    suspendedUsers: 0,
     totalAgents: 0,
     totalAdmin: 0,
     totalSuperAdmin: 0,
     totalGames: 0,
+    activeGames: 0,
+    inactiveGames: 0,
     totalPlayerDeposit: 0,
     totalAgentDeposit: 0,
     totalOpenTickets: 0,
@@ -68,8 +71,8 @@ const Dashboard = () => {
   };
 
   const fetchAdminData = async () => {
-   try {
-  const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/dash/admins`);
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/dash/admins`);
       setAdminData(response.data);
       setFilteredAdminData(response.data);
     } catch (err) {
@@ -131,21 +134,48 @@ const Dashboard = () => {
       <h1 className="text-center mb-4">
         <span style={{ color: 'red' }}>Admin</span> 
         <span style={{ color: '#10b981' }}> Dashboard</span>
-        <span style={{ color: '#f59e0b' }}> Panel</span>
       </h1>
       
       {/* Stats Cards */}
       <Row className="mb-4">
-        {/* Row 1 */}
+        {/* Row 1 - User Stats */}
         <Col xs={6} md={3} className="mb-3">
           <Card className="h-100 bg-dark text-light border-secondary">
             <Card.Body className="d-flex align-items-center">
-              <div className="me-3 text-success">
+              <div className="me-3 text-primary">
                 <FontAwesomeIcon icon={faUsers} size="2x" />
               </div>
               <div>
                 <Card.Title className="fs-6">Total Users</Card.Title>
                 <Card.Text className="fs-6">{dashboardData.totalUsers || 0}</Card.Text>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        
+        <Col xs={6} md={3} className="mb-3">
+          <Card className="h-100 bg-dark text-light border-secondary">
+            <Card.Body className="d-flex align-items-center">
+              <div className="me-3 text-success">
+                <FontAwesomeIcon icon={faUserCheck} size="2x" />
+              </div>
+              <div>
+                <Card.Title className="fs-6">Active Users</Card.Title>
+                <Card.Text className="fs-6">{dashboardData.activeUsers || 0}</Card.Text>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        
+        <Col xs={6} md={3} className="mb-3">
+          <Card className="h-100 bg-dark text-light border-secondary">
+            <Card.Body className="d-flex align-items-center">
+              <div className="me-3 text-danger">
+                <FontAwesomeIcon icon={faUserTimes} size="2x" />
+              </div>
+              <div>
+                <Card.Title className="fs-6">Suspended Users</Card.Title>
+                <Card.Text className="fs-6">{dashboardData.suspendedUsers || 0}</Card.Text>
               </div>
             </Card.Body>
           </Card>
@@ -165,6 +195,7 @@ const Dashboard = () => {
           </Card>
         </Col>
         
+        {/* Row 2 - Admin & Game Stats */}
         <Col xs={6} md={3} className="mb-3">
           <Card className="h-100 bg-dark text-light border-secondary">
             <Card.Body className="d-flex align-items-center">
@@ -193,16 +224,15 @@ const Dashboard = () => {
           </Card>
         </Col>
         
-        {/* Row 2 */}
         <Col xs={6} md={3} className="mb-3">
           <Card className="h-100 bg-dark text-light border-secondary">
             <Card.Body className="d-flex align-items-center">
-              <div className="me-3 text-warning">
+              <div className="me-3 text-success">
                 <FontAwesomeIcon icon={faGamepad} size="2x" />
               </div>
               <div>
-                <Card.Title className="fs-6">Total Games</Card.Title>
-                <Card.Text className="fs-6">{dashboardData.totalGames || 0}</Card.Text>
+                <Card.Title className="fs-6">Active Games</Card.Title>
+                <Card.Text className="fs-6">{dashboardData.activeGames || 0}</Card.Text>
               </div>
             </Card.Body>
           </Card>
@@ -211,11 +241,26 @@ const Dashboard = () => {
         <Col xs={6} md={3} className="mb-3">
           <Card className="h-100 bg-dark text-light border-secondary">
             <Card.Body className="d-flex align-items-center">
+              <div className="me-3 text-warning">
+                <FontAwesomeIcon icon={faGamepad} size="2x" />
+              </div>
+              <div>
+                <Card.Title className="fs-6">Inactive Games</Card.Title>
+                <Card.Text className="fs-6">{dashboardData.inactiveGames || 0}</Card.Text>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        
+        {/* Row 3 - Financial Stats */}
+        <Col xs={6} md={3} className="mb-3">
+          <Card className="h-100 bg-dark text-light border-secondary">
+            <Card.Body className="d-flex align-items-center">
               <div className="me-3 text-success">
                 <FontAwesomeIcon icon={faMoneyBillWave} size="2x" />
               </div>
               <div>
-                <Card.Title className="fs-6">Total Player Deposit</Card.Title>
+                <Card.Title className="fs-6">Player Deposits</Card.Title>
                 <Card.Text className="fs-6">{formatCurrency(dashboardData.totalPlayerDeposit)}</Card.Text>
               </div>
             </Card.Body>
@@ -229,7 +274,7 @@ const Dashboard = () => {
                 <FontAwesomeIcon icon={faMoneyBillWave} size="2x" />
               </div>
               <div>
-                <Card.Title className="fs-6">Total Agent Deposit</Card.Title>
+                <Card.Title className="fs-6">Agent Deposits</Card.Title>
                 <Card.Text className="fs-6">{formatCurrency(dashboardData.totalAgentDeposit)}</Card.Text>
               </div>
             </Card.Body>
@@ -243,8 +288,22 @@ const Dashboard = () => {
                 <FontAwesomeIcon icon={faTicketAlt} size="2x" />
               </div>
               <div>
-                <Card.Title className="fs-6">Total Open Tickets</Card.Title>
+                <Card.Title className="fs-6">Open Tickets</Card.Title>
                 <Card.Text className="fs-6">{dashboardData.totalOpenTickets || 0}</Card.Text>
+              </div>
+            </Card.Body>
+          </Card>
+        </Col>
+        
+        <Col xs={6} md={3} className="mb-3">
+          <Card className="h-100 bg-dark text-light border-secondary">
+            <Card.Body className="d-flex align-items-center">
+              <div className="me-3 text-info">
+                <FontAwesomeIcon icon={faChartLine} size="2x" />
+              </div>
+              <div>
+                <Card.Title className="fs-6">Total Games</Card.Title>
+                <Card.Text className="fs-6">{dashboardData.totalGames || 0}</Card.Text>
               </div>
             </Card.Body>
           </Card>
@@ -266,7 +325,6 @@ const Dashboard = () => {
                   className="bg-dark text-white border-secondary me-2"
                   style={{ width: '250px' }}
                 />
-                
               </div>
             </Card.Header>
             <Card.Body>
@@ -380,8 +438,6 @@ const Dashboard = () => {
           </Card>
         </Col>
       </Row>
-
-     
     </div>
   );
 };

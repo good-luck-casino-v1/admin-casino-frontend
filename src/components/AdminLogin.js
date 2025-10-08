@@ -22,6 +22,7 @@ const AdminLogin = () => {
 
        if (response.data.success) {
         toast.success('Login successful!');
+        localStorage.setItem('token', response.data.token);
         localStorage.setItem('adminData', JSON.stringify(response.data.admin));
         window.location.href = '/admin/dashboard';
       }
