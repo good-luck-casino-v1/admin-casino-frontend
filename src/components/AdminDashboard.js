@@ -52,6 +52,8 @@ const AdminDashboard = () => {
   
   // Profile photo state
   const [profilePhoto, setProfilePhoto] = useState(null);
+  const [previewPhoto, setPreviewPhoto] = useState(null);
+
   
   // Check admin type
   const isSuperAdmin = admin.admin_type === 'super admin';
@@ -74,6 +76,13 @@ const AdminDashboard = () => {
     fetchTicketCount();
     fetchTickets();
   }, []);
+
+  useEffect(() => {
+  return () => {
+    if (previewPhoto) URL.revokeObjectURL(previewPhoto);
+  };
+}, [previewPhoto]);
+
   
   const fetchTicketCount = async () => {
     try {
@@ -100,37 +109,39 @@ const AdminDashboard = () => {
     window.location.href = '/';
   };
   
-  const handleUpdateProfile = async () => {
-    try {
-      const formData = new FormData();
-      formData.append('name', editProfile.name);
-      formData.append('mobile', editProfile.mobile);
-      formData.append('email', editProfile.email);
-      
-      if (profilePhoto) {
-        formData.append('photo', profilePhoto);
-      }
-      
-      const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/admin/update`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      
-      setAdmin(response.data.admin);
-      localStorage.setItem('adminData', JSON.stringify(response.data.admin));
-      setShowEditProfileModal(false);
-      toast.success('Profile updated successfully! Redirecting to login...');
-      
-      // Redirect to login page after 2 seconds
-      setTimeout(() => {
-        localStorage.removeItem('adminData');
-        window.location.href = '/';
-      }, 2000);
-    } catch (error) {
-      toast.error('Failed to update profile');
-    }
-  };
+const handleUpdateProfile = async () => {
+  try {
+    const formData = new FormData();
+    formData.append('name', editProfile.name);
+    formData.append('mobile', editProfile.mobile);
+    formData.append('email', editProfile.email);
+    if (profilePhoto) formData.append('photo', profilePhoto);
+
+    const token = localStorage.getItem('token');
+    const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/admin/update`,
+  formData,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
+
+
+    setAdmin(response.data.admin);
+    localStorage.setItem('adminData', JSON.stringify(response.data.admin));
+    setShowEditProfileModal(false);
+    toast.success('Profile updated successfully!');
+
+    // Refresh immediately
+    setTimeout(() => window.location.reload(), 1500);
+  } catch (error) {
+    console.error('Profile update failed:', error);
+    toast.error('Failed to update profile');
+  }
+};
+
+
   
   const handleChangePassword = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
@@ -289,13 +300,20 @@ return (
               onClick={() => setShowDropdown(!showDropdown)}
             >
               {admin.photo ? (
-                <img 
-                  src={`/images/admin/${admin.photo}`} 
-                  alt="Admin" 
-                  className="rounded-circle me-2" 
-                  width="30" 
-                  height="30"
-                />
+              <img
+                src={
+                  admin.photo
+                    ? admin.photo.startsWith('http')
+                      ? admin.photo
+                      : `${process.env.REACT_APP_SPACES_CDN}/admin/${admin.photo}`
+                    : '/images/default-user.png'
+                }
+                alt="Admin"
+                className="rounded-circle me-2"
+                width="30"
+                height="30"
+              />
+
               ) : (
                 <div className="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" 
                      style={{ width: '30px', height: '30px' }}>
@@ -442,20 +460,31 @@ return (
                 ></button>
               </div>
               <div className="modal-body text-center">
-                {admin.photo ? (
-                  <img 
-                    src={`/images/admin/${admin.photo}`} 
-                    alt="Admin" 
-                    className="rounded-circle mb-3" 
-                    width="100" 
-                    height="100"
-                  />
-                ) : (
-                  <div className="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" 
-                       style={{ width: '100px', height: '100px' }}>
-                    <FaUser size={40} />
-                  </div>
-                )}
+               {admin.photo ? (
+                <img
+                  src={
+                    admin.photo.startsWith('http')
+                      ? admin.photo
+                      : `${process.env.REACT_APP_SPACES_CDN}/admin/${admin.photo}`
+                  }
+                  alt="Admin"
+                  className="rounded-circle mb-3"
+                  width="100"
+                  height="100"
+                  style={{ objectFit: 'cover', border: '2px solid #28a745' }}
+                  onError={(e) => {
+                    e.target.src = '/images/default-user.png';
+                  }}
+                />
+              ) : (
+                <div
+                  className="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+                  style={{ width: '100px', height: '100px' }}
+                >
+                  <FaUser size={40} />
+                </div>
+              )}
+
                 <h4>{admin.name}</h4>
                 <p className="text-warning">{admin.admin_type}</p>
                 <p><strong>Mobile:</strong> {admin.mobile || 'Not provided'}</p>
@@ -486,103 +515,136 @@ return (
       )}
       
       {/* Edit Profile Modal */}
-      {showEditProfileModal && (
-        <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 1060 }}>
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content bg-dark text-white">
-              <div className="modal-header bg-success">
-                <h5 className="modal-title">Edit Profile</h5>
-                <button 
-                  type="button" 
-                  className="btn-close btn-close-white"
-                  onClick={() => setShowEditProfileModal(false)}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <div className="text-center mb-3">
-                  {editProfile.photo ? (
-                    <img 
-                      src={`/images/admin/${editProfile.photo}`} 
+    {/* ✅ Edit Profile Modal */}
+{showEditProfileModal && (
+  <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.8)', zIndex: 1060 }}>
+    <div className="modal-dialog modal-dialog-centered">
+      <div className="modal-content bg-dark text-white">
+        <div className="modal-header bg-success">
+          <h5 className="modal-title">Edit Profile</h5>
+          <button 
+            type="button" 
+            className="btn-close btn-close-white"
+            onClick={() => setShowEditProfileModal(false)}
+          ></button>
+        </div>
+
+        <div className="modal-body text-center">
+          {/* ✅ Fixed image preview logic */}
+{previewPhoto ? (
+  // 🟢 Show selected new photo instantly
+  <img
+    src={previewPhoto}
+    alt="Preview"
+    className="rounded-circle mb-3"
+    width="100"
+    height="100"
+    style={{ objectFit: 'cover', border: '2px solid #28a745' }}
+  />
+) : admin.photo ? (
+  // 🟢 Show existing photo from S3 or default
+  <img
+    src={
+      admin.photo.startsWith('http')
+        ? admin.photo
+        : `${process.env.REACT_APP_SPACES_CDN}/admin/${admin.photo}`
+    }
+    alt="Admin"
+    className="rounded-circle mb-3"
+    width="100"
+    height="100"
+    style={{ objectFit: 'cover', border: '2px solid #28a745' }}
+    onError={(e) => {
+      e.target.src = '/images/default-user.png';
+    }}
+  />
+) : (
+  // 🟢 Fallback - no photo yet
+  <div
+    className="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3"
+    style={{ width: '100px', height: '100px' }}
+  >
+    <FaUser size={40} />
+  </div>
+)}
 
 
-                      className="rounded-circle" 
-                      width="100" 
-                      height="100"
-                    />
-                  ) : (
-                    <div className="bg-secondary rounded-circle d-flex align-items-center justify-content-center mx-auto" 
-                         style={{ width: '100px', height: '100px' }}>
-                      <FaUser size={40} />
-                    </div>
-                  )}
-                  <div className="mt-2">
-                    <label className="btn btn-sm btn-secondary">
-                      Change Photo
-                      <input 
-                        type="file" 
-                        className="d-none" 
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file) {
-                            setProfilePhoto(file);
-                            setEditProfile({...editProfile, photo: file.name});
-                          }
-                        }} 
-                      />
-                    </label>
-                  </div>
-                </div>
-                
-                <div className="mb-3">
-                  <label className="form-label">Name</label>
-                  <input 
-                    type="text" 
-                    className="form-control bg-secondary text-white" 
-                    value={editProfile.name}
-                    onChange={(e) => setEditProfile({...editProfile, name: e.target.value})}
-                  />
-                </div>
-                
-                <div className="mb-3">
-                  <label className="form-label">Mobile</label>
-                  <input 
-                    type="text" 
-                    className="form-control bg-secondary text-white" 
-                    value={editProfile.mobile || ''}
-                    onChange={(e) => setEditProfile({...editProfile, mobile: e.target.value})}
-                  />
-                </div>
-                
-                <div className="mb-3">
-                  <label className="form-label">Email</label>
-                  <input 
-                    type="email" 
-                    className="form-control bg-secondary text-white" 
-                    value={editProfile.email}
-                    onChange={(e) => setEditProfile({...editProfile, email: e.target.value})}
-                  />
-                </div>
-              </div>
-              <div className="modal-footer bg-success">
-                <button 
-                  type="button" 
-                  className="btn btn-secondary"
-                  onClick={() => setShowEditProfileModal(false)}
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="button" 
-                  className="btn btn-light"
-                  onClick={handleUpdateProfile}
-                >
-                  <FaEdit className="me-2" /> Modify
-                </button>
-              </div>
-            </div>
+          {/* 🟢 File input for new photo */}
+          <div className="mt-2 mb-4">
+            <label className="btn btn-sm btn-outline-light">
+              Change Photo
+            <input
+  type="file"
+  accept="image/*"
+  className="d-none"
+  onChange={(e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfilePhoto(file);
+
+      // ✅ Create preview URL and store it separately
+      const previewUrl = URL.createObjectURL(file);
+      setPreviewPhoto(previewUrl);
+    }
+  }}
+/>
+
+
+            </label>
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Name</label>
+            <input
+              type="text"
+              className="form-control bg-secondary text-white"
+              value={editProfile.name}
+              onChange={(e) => setEditProfile({ ...editProfile, name: e.target.value })}
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Mobile</label>
+            <input
+              type="text"
+              className="form-control bg-secondary text-white"
+              value={editProfile.mobile || ''}
+              onChange={(e) => setEditProfile({ ...editProfile, mobile: e.target.value })}
+            />
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Email</label>
+            <input
+              type="email"
+              className="form-control bg-secondary text-white"
+              value={editProfile.email}
+              onChange={(e) => setEditProfile({ ...editProfile, email: e.target.value })}
+            />
           </div>
         </div>
-      )}
+
+        <div className="modal-footer bg-success">
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setShowEditProfileModal(false)}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="btn btn-light"
+            onClick={handleUpdateProfile}
+          >
+            <FaEdit className="me-2" /> Modify
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
       
       {/* Password Change Modal */}
       {showPasswordModal && (
