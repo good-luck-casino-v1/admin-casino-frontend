@@ -259,31 +259,27 @@ const AdminDashboard = () => {
     // Added Payment Gateway
   ];
   
-  return (
-    <div className="min-vh-100 bg-dark text-white">
-      {/* First Navbar - Fixed */}
-      <nav className="navbar navbar-expand-lg navbar-dark bg-success fixed-top">
-        <div className="container-fluid">
-       <div className="d-flex align-items-center ms-3">
-  <img 
-    src="/images/goodluck-logo.png" 
-    alt="GoodLuck Casino" 
-    height="40" 
-    className="me-2"
-  />
-
-  {/* Desktop text */}
-  <span className="navbar-brand fw-bold d-none d-md-inline" style={{ color: '#FFD700' }}>
-    GoodLuck Casino
-  </span>
-
-  {/* Mobile text */}
-  <span className="navbar-brand fw-bold d-inline d-md-none" style={{ color: '#FFD700' }}>
-    GLC
-  </span>
-</div>
-
-
+return (
+  <div className="min-vh-100 bg-dark text-white">
+    {/* Admin Navbar - Fixed */}
+    <nav className="navbar navbar-expand-lg navbar-dark bg-success fixed-top">
+      <div className="container-fluid d-flex justify-content-between align-items-center px-3">
+        
+        {/* Left side - Logo + Brand Name */}
+        <div className="d-flex align-items-center">
+          <img
+            src="/images/goodluck-logo.png"
+            alt="GoodLuck Casino"
+            height="35"
+            className="me-2 rounded-circle"
+          />
+          <span
+            className="navbar-brand fw-bold"
+            style={{ color: "#FFD700", fontSize: "1rem" }}
+          >
+            GOODLUCK CASINO
+          </span>
+        </div>
           
           {/* Custom Dropdown */}
           <div className="dropdown me-3" ref={dropdownRef}>
@@ -833,3 +829,4 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+
