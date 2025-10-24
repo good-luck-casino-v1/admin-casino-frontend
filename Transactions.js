@@ -9,11 +9,6 @@ import {
 import { Modal, Button, Form, Alert, Table, Spinner, Row, Col, Badge, Nav, Tab } from 'react-bootstrap';
 import axios from 'axios';
 
-
-
-const API = process.env.REACT_APP_API_URL;
-
-
 const Transactions = () => {
   // State declarations
   const [transactions, setTransactions] = useState([]);
@@ -53,14 +48,6 @@ const Transactions = () => {
       fetchAgentTransactions();
     }
   }, [activeTab, activeSubTab, agentFilters]);
-
-//   useEffect(() => {
-//   if (alert.show) {
-//     const timer = setTimeout(() => setAlert({ show: false }), 4000);
-//     return () => clearTimeout(timer);
-//   }
-// }, [alert]);
-
   
   // Apply search and filters whenever transactions or searchTerm changes
   useEffect(() => {
@@ -222,111 +209,57 @@ const Transactions = () => {
     setShowAgentModal(true);
   };
   
-const [processing, setProcessing] = useState(false); //  Add near other useStates
-
-const handleTransactionStatusUpdate = async (transaction, status) => {
-  try {
-    setProcessing(true);
-    const transactionId = transaction.id;
-
-    // Case 1: Payment Gateway Withdrawals
-    if (
-      status === "completed" &&
-      transaction.payment_method === "payment_gateway"
-    ) {
-      const withdrawData = {
-        transaction_id: transaction.transaction_id || transaction.id || "", // ADD THIS LINE
-        account_name: transaction.account_name || "User",
-        upi_id: transaction.upi_id || "testupi@oksbi",
-        amount: transaction.amount,
-      };
-
-
-
-      if (!withdrawData.upi_id) {
-        throw new Error("UPI ID or account number missing for payout");
-      }
-
-      console.log("Triggering WDDPay /api/transactions/upi/withdraw ...", withdrawData);
-
-      const withdrawResponse = await axios.post(
-  `${API}/api/transactions/upi/admin/withdraw`,
-  withdrawData,
-  {
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-    },
-  }
-);
-
-
-      console.log("Gateway API Response:", withdrawResponse.data);
-
-      if (withdrawResponse.data.success) {
-        const message =
-          withdrawResponse.data.message ||
-          withdrawResponse.data.gateway_response?.message ||
-          "Withdrawal sent successfully.";
-
-        // Mark transaction as completed
-        await axios.put(`${API}/api/transactions/${transactionId}/status`, { status });
-
-        setAlert({
-          show: true,
-          message: `Payment Gateway: ${message}`,
-          variant: "success",
-        });
+  // Handle transaction status update
+  const handleTransactionStatusUpdate = async (transactionId, status) => {
+    try {
+      // Special handling for payment_gateway transactions
+      if (status === 'completed' && selectedTransaction && selectedTransaction.payment_method === 'payment_gateway') {
+        // Prepare data for UPI withdraw API
+        const withdrawData = {
+          Amount: editedAmount,
+          acc_no: selectedTransaction.account_number,
+          account_name: selectedTransaction.account_name,
+          bank_code: selectedTransaction.bank_code,
+          ifsc_code: selectedTransaction.ifsc_code,
+          currency: selectedTransaction.currency || 'INR'
+        };
+        
+        // Call UPI withdraw API
+        const withdrawResponse = await axios.post(`https://api.goodluck24bet.com/api/upi/withdraw`, withdrawData);
+        
+        if (withdrawResponse.data.success) {
+          // If UPI withdraw is successful, update transaction status
+          const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/transactions/${transactionId}/status`, { status });
+          
+          let message = `Transaction ${status} successfully`;
+          if (response.data.newBalance !== null) {
+            message = `Transaction completed. New wallet balance: ₹${response.data.newBalance}`;
+          }
+          
+          setAlert({ show: true, message, variant: 'success' });
+          fetchTransactions();
+          setShowViewModal(false);
+        } else {
+          throw new Error('UPI withdraw failed');
+        }
       } else {
-        const gatewayMessage =
-          withdrawResponse.data.message ||
-          withdrawResponse.data.gateway_response?.message ||
-          "WDDPay withdraw failed.";
-
-        console.error("Withdraw failed:", gatewayMessage);
-        setAlert({
-          show: true,
-          message: `Payment Gateway Error: ${gatewayMessage}`,
-          variant: "danger",
-        });
+        // Normal handling for other transactions
+        const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/transactions/${transactionId}/status`, { status });
+        
+        let message = `Transaction ${status} successfully`;
+        if (status === 'completed' && response.data.newBalance !== null) {
+          message = `Transaction completed. New wallet balance: ₹${response.data.newBalance}`;
+        }
+        
+        setAlert({ show: true, message, variant: 'success' });
+        fetchTransactions();
+        setShowViewModal(false);
       }
-
-      fetchTransactions();
-      setShowViewModal(false);
-      return; // stop here for gateway case
+    } catch (error) {
+      console.error('Error updating transaction status:', error);
+      setAlert({ show: true, message: 'Error updating transaction status', variant: 'danger' });
     }
-
-    // Case 2: Manual / Non-Gateway Withdrawals
-    const response = await axios.put(
-      `${API}/api/transactions/${transactionId}/status`,
-      { status }
-    );
-
-    const newBalanceMsg =
-      response.data.newBalance !== null
-        ? `New wallet balance: ₹${response.data.newBalance}`
-        : "";
-
-    setAlert({
-      show: true,
-      message: `Transaction ${status} successfully. ${newBalanceMsg}`,
-      variant: "success",
-    });
-
-    fetchTransactions();
-    setShowViewModal(false);
-  } catch (error) {
-    console.error("Error updating transaction status:", error);
-    const errMsg =
-      error.response?.data?.message ||
-      error.message ||
-      "Error updating transaction status";
-    setAlert({ show: true, message: errMsg, variant: "danger" });
-  } finally {
-    setProcessing(false);
-  }
-};
-
-
+  };
   
   // Handle agent deposit status update
   const handleAgentDepositStatusUpdate = async (depositId, status) => {
@@ -593,47 +526,36 @@ const handleTransactionStatusUpdate = async (transaction, status) => {
                                 </Badge>
                               </td>
                               <td>
-  <Button
-    variant="info"
-    size="sm"
-    onClick={() => openViewModal(transaction)}
-    className="me-1"
-  >
-    <FontAwesomeIcon icon={faEye} /> <span className="d-none d-sm-inline">View</span>
-  </Button>
-
-  {transaction.status === 'pending' && (
-    <>
-      <Button
-  variant="success"
-  size="sm"
-  className="me-1"
-  disabled={processing}
-  onClick={() => handleTransactionStatusUpdate(transaction, 'completed')}
->
-
-        {processing ? (
-          <>
-            <Spinner animation="border" size="sm" /> Processing...
-          </>
-        ) : (
-          <>
-            <FontAwesomeIcon icon={faCheck} /> <span className="d-none d-sm-inline">Mark</span>
-          </>
-        )}
-      </Button>
-
-      <Button
-  variant="danger"
-  size="sm"
-  onClick={() => handleTransactionStatusUpdate(transaction, 'reject')}
->
-
-        <FontAwesomeIcon icon={faTimes} />
-      </Button>
-    </>
-  )}
-</td>
+                                <Button
+                                  variant="info"
+                                  size="sm"
+                                  onClick={() => openViewModal(transaction)}
+                                  className="me-1"
+                                >
+                                  <FontAwesomeIcon icon={faEye} /> <span className="d-none d-sm-inline">View</span>
+                                </Button>
+                                {transaction.status === 'pending' && (
+                                  <>
+                                    <Button 
+                                      variant="success" 
+                                      size="sm" 
+                                      className="me-1"
+                                      onClick={() => handleTransactionStatusUpdate(transaction.id, 'completed')}
+                                      title="Mark as Completed"
+                                    >
+                                      <FontAwesomeIcon icon={faCheck} />
+                                    </Button>
+                                    <Button 
+                                      variant="danger" 
+                                      size="sm"
+                                      onClick={() => handleTransactionStatusUpdate(transaction.id, 'reject')}
+                                      title="Mark as Rejected"
+                                    >
+                                      <FontAwesomeIcon icon={faTimes} />
+                                    </Button>
+                                  </>
+                                )}
+                              </td>
                             </tr>
                           )) : (
                             <tr>
@@ -967,33 +889,20 @@ const handleTransactionStatusUpdate = async (transaction, status) => {
           </Button>
           {selectedTransaction && selectedTransaction.status === 'pending' && (
             <>
-             <Button
-  variant="success"
-  className="me-2 action-button"
-  disabled={processing}
-  onClick={() => handleTransactionStatusUpdate(selectedTransaction, 'completed')}
->
-  {processing ? (
-    <>
-      <Spinner animation="border" size="sm" /> Processing...
-    </>
-  ) : (
-    <>
-      <FontAwesomeIcon icon={faCheck} /> Mark as Completed
-    </>
-  )}
-</Button>
-
-<Button
-  variant="danger"
-  className="action-button"
-  disabled={processing}
-  onClick={() => handleTransactionStatusUpdate(selectedTransaction, 'reject')}
->
-  <FontAwesomeIcon icon={faTimes} /> Mark as Rejected
-</Button>
-
-
+              <Button 
+                variant="success" 
+                className="me-2 action-button"
+                onClick={() => handleTransactionStatusUpdate(selectedTransaction.id, 'completed')}
+              >
+                <FontAwesomeIcon icon={faCheck} /> Mark as Completed
+              </Button>
+              <Button 
+                variant="danger"
+                className="action-button"
+                onClick={() => handleTransactionStatusUpdate(selectedTransaction.id, 'reject')}
+              >
+                <FontAwesomeIcon icon={faTimes} /> Mark as Rejected
+              </Button>
             </>
           )}
         </Modal.Footer>
