@@ -316,8 +316,6 @@ const PaymentGatewayTab = ({ isSuperAdmin }) => {
         return <FaLandmark className="me-2" />;
       case 'cash':
         return <FaMoneyBillWave className="me-2" />;
-         case 'upi':
-      return <FaMobileAlt className="me-2" />;
       case 'card':
         return <FaCreditCard className="me-2" />;
       case 'cryptocurrency':
@@ -547,12 +545,6 @@ const PaymentGatewayTab = ({ isSuperAdmin }) => {
                           className={typeFilter === 'card' ? 'bg-secondary' : 'bg-dark text-light'}
                         >
                           Card
-                        </Dropdown.Item>
-                        <Dropdown.Item 
-                          onClick={() => setTypeFilter('upi')} 
-                          className={typeFilter === 'upi' ? 'bg-secondary' : 'bg-dark text-light'}
-                        >
-                          UPI
                         </Dropdown.Item>
                         <Dropdown.Item 
                           onClick={() => setTypeFilter('cryptocurrency')} 
@@ -973,7 +965,6 @@ const PaymentGatewayTab = ({ isSuperAdmin }) => {
                 <option value="bank_account">Bank Account</option>
                 <option value="cash">Cash</option>
                 <option value="card">Card</option>
-                <option value="upi">Upi</option>
                 <option value="cryptocurrency">Cryptocurrency</option>
               </Form.Select>
             </Form.Group>
@@ -1080,6 +1071,7 @@ const PaymentGatewayTab = ({ isSuperAdmin }) => {
                 name="api_token"
                 value={formData.api_token}
                 onChange={handleInputChange}
+              
                 className="bg-dark text-light border-secondary"
               />
             </Form.Group>
@@ -1151,7 +1143,6 @@ const PaymentGatewayTab = ({ isSuperAdmin }) => {
                 <option value="bank_account">Bank Account</option>
                 <option value="cash">Cash</option>
                 <option value="card">Card</option>
-                <option value="upi">UPI</option>
                 <option value="cryptocurrency">Cryptocurrency</option>
               </Form.Select>
             </Form.Group>
@@ -1258,6 +1249,7 @@ const PaymentGatewayTab = ({ isSuperAdmin }) => {
                 name="api_token"
                 value={editData.api_token || ''}
                 onChange={handleEditInputChange}
+                
                 className="bg-dark text-light border-secondary"
               />
             </Form.Group>
