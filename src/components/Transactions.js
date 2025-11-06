@@ -192,8 +192,9 @@ const Transactions = () => {
   // Open view modal for a transaction
   const openViewModal = (transaction) => {
     setSelectedTransaction(transaction);
+    const method = (transaction.payment_method || '').toLowerCase();
     // Initialize edited amount if it's a payment_gateway transaction
-    if (transaction.payment_method === 'payment_gateway') {
+     if (['payment_gateway', 'cloudpay', 'toppay'].includes(method)) {
       setEditedAmount(transaction.amount);
     } else {
       setEditedAmount('');
@@ -230,97 +231,74 @@ const handleTransactionStatusUpdate = async (transaction, status) => {
     setProcessing(true);
     const transactionId = transaction.id;
 
-    // Normalize payment method
-    const method = (transaction.payment_method || "").toLowerCase();
+    if (status === "completed") {
+      const method = (transaction.payment_method || "").toLowerCase();
 
-    // ✅ CASE 1: CloudPay Withdrawals
-    if (status === "completed" && (method.includes("cloudpay") || method.includes("payment_gateway"))) {
+      // Get payout details
       let paymentDetails = {};
       try {
         paymentDetails =
           typeof transaction.payment_details === "string"
             ? JSON.parse(transaction.payment_details)
             : transaction.payment_details || {};
-      } catch (e) {
+      } catch {
         paymentDetails = {};
       }
 
-      // Build payout data
-      const withdrawData = {
+      const payoutData = {
         transaction_id: transaction.transaction_id || transaction.id,
-        amount: editedAmount || transaction.amount,
-        upi_id: paymentDetails.upi_id || transaction.upi_id || "",
-        account_name: paymentDetails.account_name || transaction.account_name || "User",
-        acc_no: paymentDetails.acc_no || transaction.account_number || "",
-        bank_code: paymentDetails.bank_code || transaction.bank_name || "",
-        ifsc_code: paymentDetails.ifsc_code || transaction.ifsc || "",
+        amount: transaction.amount,
+        upi_id: paymentDetails.upi_id || "",
+        account_name: paymentDetails.account_name || "User",
+        acc_no: paymentDetails.acc_no || "",
+        bank_code: paymentDetails.bank_code || "",
+        ifsc_code: paymentDetails.ifsc_code || "",
+        payment_method: transaction.payment_method, // ✅ tells backend which gateway
       };
 
-      // ✅ Soft validation
-      if (!withdrawData.upi_id && !withdrawData.acc_no) {
-        setAlert({
-          show: true,
-          message: "⚠️ Missing payout details (UPI ID or Bank Account). Please verify user details.",
-          variant: "warning",
-        });
-        setProcessing(false);
-        return;
-      }
+      console.log("🚀 Sending payout to API:", payoutData);
 
-      console.log("🚀 Sending payout request to CloudPay:", withdrawData);
-
-      const withdrawResponse = await axios.post(
+      const response = await axios.post(
         `${API}/api/transactions/admin-payout`,
-        withdrawData,
+        payoutData,
         {
           headers: { Authorization: `Bearer ${localStorage.getItem("token") || ""}` },
         }
       );
 
-      console.log("💸 CloudPay Response:", withdrawResponse.data);
-
-      if (withdrawResponse.data.success) {
+      if (response.data.success) {
         setAlert({
           show: true,
-          message: "✅ CloudPay payout initiated successfully.",
+          message: response.data.message,
           variant: "success",
         });
-
-        // Mark as "processing" locally
-        await axios.put(`${API}/api/transactions/${transactionId}/status`, {
-          status: "processing",
-        });
-
-        fetchTransactions();
-        setShowViewModal(false);
       } else {
-        throw new Error(withdrawResponse.data.message || "CloudPay payout failed.");
+        throw new Error(response.data.message);
       }
 
+      await fetchTransactions();
+      setShowViewModal(false);
+      setProcessing(false);
       return;
     }
 
-    // ✅ CASE 2: Manual deposit/withdraw
-    const response = await axios.put(`${API}/api/transactions/${transactionId}/status`, { status });
-
-    const msg = response.data.newBalance
-      ? `Transaction ${status}. New wallet balance: ₹${response.data.newBalance}`
-      : `Transaction ${status} successfully.`;
-
-    setAlert({ show: true, message: msg, variant: "success" });
-    fetchTransactions();
+    // Reject case
+    await axios.put(`${API}/api/transactions/${transactionId}/status`, { status });
+    setAlert({ show: true, message: `Transaction ${status} successfully.`, variant: "success" });
+    await fetchTransactions();
     setShowViewModal(false);
   } catch (error) {
     console.error("💥 Transaction update error:", error);
-    const errMsg =
-      error.response?.data?.message ||
-      error.message ||
-      "Error updating transaction.";
-    setAlert({ show: true, message: errMsg, variant: "danger" });
+    setAlert({
+      show: true,
+      message: error.response?.data?.message || error.message || "Error updating transaction.",
+      variant: "danger",
+    });
   } finally {
     setProcessing(false);
   }
 };
+
   
   // Handle agent deposit status update
   const handleAgentDepositStatusUpdate = async (depositId, status) => {
@@ -882,7 +860,8 @@ const handleTransactionStatusUpdate = async (transaction, status) => {
                 </Col>
               </Row>
               
-              {/* Amount field - editable for payment_gateway */}{['cloudpay', 'payment_gateway'].includes(
+              {/* Amount field - editable for payment_gateway */}
+              {['cloudpay', 'toppay','payment_gateway'].includes(
   (selectedTransaction.payment_method || "").toLowerCase()
 ) ? (
                 <Row className="mb-2">
