@@ -212,32 +212,35 @@ const UserManagement = () => {
   };
   
   // Handle transaction status update
-  const handleTransactionStatusUpdate = async (transactionId, status) => {
-    try {
-      const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/users/transactions/${transactionId}/status`, { status });
-      setAlert({ show: true, message: `Transaction ${status} successfully`, variant: 'success' });
-      
-      // If transaction was completed and wallet balance was updated, show additional info
-      if (status === 'completed' && response.data.newBalance !== null) {
-        setAlert({ 
-          show: true, 
-          message: `Transaction completed. New wallet balance: $${response.data.newBalance}`, 
-          variant: 'success' 
-        });
-      }
-      
-      // Refresh data for the current user
-      if (currentUser) {
-        fetchViewData(currentUser.id, 'pendingTransactions');
-        fetchViewData(currentUser.id, 'details'); // Refresh to show updated wallet balance
-        fetchViewData(currentUser.id, 'completedTransactions'); // Refresh to show new completed transaction
-      }
-    } catch (error) {
-      console.error('Error updating transaction status:', error);
-      setAlert({ show: true, message: 'Error updating transaction status', variant: 'danger' });
+const handleTransactionStatusUpdate = async (transactionId, status) => {
+  try {
+    const response = await axios.put(
+      `${process.env.REACT_APP_API_URL}/api/transactions/${transactionId}/status`,
+      { status }
+    );
+
+    if (response.data.success) {
+      setAlert({
+        show: true,
+        message: response.data.message + (response.data.newBalance ? ` | New balance: ₹${response.data.newBalance}` : ''),
+        variant: 'success',
+      });
+    } else {
+      setAlert({ show: true, message: 'Transaction update failed', variant: 'danger' });
     }
-  };
-  
+
+    // ✅ Refresh views
+    if (currentUser) {
+      fetchViewData(currentUser.id, 'pendingTransactions');
+      fetchViewData(currentUser.id, 'details');
+      fetchViewData(currentUser.id, 'completedTransactions');
+    }
+  } catch (error) {
+    console.error('Error updating transaction status:', error);
+    setAlert({ show: true, message: 'Error updating transaction status', variant: 'danger' });
+  }
+};
+
   // Handle user status update with modal close and page reload
   const handleUserStatusUpdateAndClose = async (userId, status) => {
     try {
