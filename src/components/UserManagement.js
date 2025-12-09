@@ -212,11 +212,17 @@
     };
     
     // Handle transaction status update
-const handleTransactionStatusUpdate = async (transactionId, status) => {
+const handleTransactionStatusUpdate = async (tx, status) => {
   try {
+    // Normalize values
+    const method = (tx.payment_method || "").toLowerCase();
+    const type = (tx.type || "").toLowerCase();
+
+    // 1️⃣ Update transaction status (completed/rejected)
     const response = await axios.put(
-      `${process.env.REACT_APP_API_URL}/api/transactions/${transactionId}/status`,
-      { status }
+      `${process.env.REACT_APP_API_URL}/api/transactions/${tx.id}/status`,
+      { status },
+      { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
     );
 
     const msg = response?.data?.message || "Transaction processed";
@@ -227,18 +233,90 @@ const handleTransactionStatusUpdate = async (transactionId, status) => {
       variant: response?.data?.success ? "success" : "danger",
     });
 
-    setTimeout(() => setAlert({ show: false }), 4000);
+    // ❌ If rejected → stop here
+    if (status === "rejected") return;
 
-    if (currentUser) {
-      await fetchViewData(currentUser.id, 'pendingTransactions').catch(() => {});
-      await fetchViewData(currentUser.id, 'details').catch(() => {});
-      await fetchViewData(currentUser.id, 'completedTransactions').catch(() => {});
+    // ===================================================
+    // 2️⃣ COMPLETED — CHECK TYPE
+    // ===================================================
+
+    // 🟢 CASE A: BANK DEPOSIT
+    if (status === "completed" && type === "deposit" && method.includes("bank")) {
+      console.log("✔ BANK DEPOSIT completed — wallet credited via backend");
+      await refreshViews();
+      return;
     }
 
+    // 🟢 CASE B: BANK WITHDRAW
+    if (status === "completed" && type === "withdraw" && method.includes("bank")) {
+      console.log("✔ BANK WITHDRAW completed — wallet debited via backend");
+      await refreshViews();
+      return;
+    }
+
+    // 🟢 CASE C: GATEWAY WITHDRAW (TopPay / CloudPay)
+    if (status === "completed" && type === "withdraw") {
+      const payoutURL =
+        method === "toppay"
+          ? `${process.env.REACT_APP_API_URL}/api/transactions/admin-payout-toppay`
+          : `${process.env.REACT_APP_API_URL}/api/transactions/admin-payout`;
+
+      const payoutData = {
+        transaction_id: tx.transaction_id,
+        transaction_id: tx.id,
+        amount: tx.amount,
+        userId: tx.user_id,
+        payment_method: method,
+        bank_code: tx.bank_code || "",
+        ifsc_code: tx.ifsc_code || "",
+        acc_no: tx.account_number || "",
+        account_name: tx.account_name || "User",
+        upi_id: tx.upi_id || "",
+      };
+
+      console.log(`🚀 Sending payout to: ${payoutURL}`, payoutData);
+
+      const payoutRes = await axios.post(
+        payoutURL,
+        payoutData,
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      );
+
+      console.log("Payout Sent:", payoutRes.data);
+
+      setAlert({
+        show: true,
+        message: payoutRes.data.message || "Payout triggered successfully!",
+        variant: payoutRes.data.success ? "success" : "danger",
+      });
+    }
+
+    // ===================================================
+    // 3️⃣ Refresh dashboard after action
+    // ===================================================
+    await refreshViews();
+
   } catch (error) {
-    setAlert({ show: true, message: "Server error", variant: "danger" });
+    console.error("Status update error:", error);
+    setAlert({
+      show: true,
+      message: error.response?.data?.message || "Server error",
+      variant: "danger",
+    });
+  }
+
+  // Helper: Refresh all user views
+  async function refreshViews() {
+    if (!currentUser) return;
+    await fetchViewData(currentUser.id, "pendingTransactions").catch(() => {});
+    await fetchViewData(currentUser.id, "details").catch(() => {});
+    await fetchViewData(currentUser.id, "completedTransactions").catch(() => {});
+
+    setTimeout(() => setAlert({ show: false }), 4000);
   }
 };
+
+
 
 
     // Handle user status update with modal close and page reload
@@ -923,14 +1001,14 @@ const handleTransactionStatusUpdate = async (transactionId, status) => {
             variant="success" 
             size="sm" 
             className="me-1"
-            onClick={() => handleTransactionStatusUpdate(tx.id, 'completed')}
+            onClick={() => handleTransactionStatusUpdate(tx, 'completed')}
           >
             ✓ Accept
           </Button>
           <Button 
             variant="danger" 
             size="sm"
-            onClick={() => handleTransactionStatusUpdate(tx.id, 'rejected')}
+            onClick={() => handleTransactionStatusUpdate(tx, 'reject')}
           >
             ✗ Reject
           </Button>
