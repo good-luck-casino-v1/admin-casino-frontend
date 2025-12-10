@@ -87,42 +87,22 @@ pipeline {
             }
         }
         
-        stage('Build React App') {
+        stage('Prepare Environment') {
             steps {
-                container('node') {
-                    echo '⚛️  Building React application...'
-                    sh '''
-                        echo "Node.js version: $(node --version)"
-                        echo "npm version: $(npm --version)"
-                        
-                        export NODE_OPTIONS="--max-old-space-size=1536"
-                        export CI=false
-                        
-                        echo "📦 Installing dependencies..."
-                        if npm ci --prefer-offline --no-audit; then
-                            echo "✅ npm ci completed successfully"
-                        else
-                            echo "⚠️  npm ci failed, using npm install as fallback..."
-                            rm -f package-lock.json
-                            npm install --prefer-offline --no-audit
-                            echo "✅ npm install completed successfully"
-                        fi
-                        
-                        echo "🔧 Creating environment file..."
+                script {
+                    echo '🔧 Creating environment configuration...'
+                    // Create .env.production file that will be copied into Docker image
+                    sh """
                         cat > .env.production << EOF
 REACT_APP_API_URL=${API_URL}
 REACT_APP_ENV=production
 EOF
-                        
-                        echo "📋 Environment configuration:"
-                        cat .env.production
-                        
-                        echo "🏗️  Building React application..."
-                        npm run build
-                        
-                        echo "✅ Build completed successfully!"
-                        echo "📊 Build size: $(du -sh build/)"
-                    '''
+                    """
+                    
+                    echo "📋 Environment configuration created:"
+                    sh "cat .env.production"
+                    
+                    echo "✅ Ready for Docker build (npm build will happen inside Docker)"
                 }
             }
         }
