@@ -39,3 +39,415 @@
     transform: rotate(360deg);
   }
 }
+
+/* =====================================================
+   Glassmorphism Effects for Admin Panel
+   ===================================================== */
+
+/* Glass Card Base Style */
+.glass-card {
+  background: rgba(20, 40, 30, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Pending Withdrawals Glass Container */
+.pending-withdrawals-container {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(11, 22, 16, 0.75));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 2px solid rgba(16, 185, 129, 0.3);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3),
+              0 0 30px rgba(16, 185, 129, 0.15),
+              inset 0 0 20px rgba(16, 185, 129, 0.05);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pending-withdrawals-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4),
+              0 0 50px rgba(16, 185, 129, 0.3),
+              0 0 80px rgba(16, 185, 129, 0.15),
+              inset 0 0 30px rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.6);
+}
+
+/* Glass Table Styling */
+.glass-table {
+  background: rgba(20, 30, 25, 0.6) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.glass-table thead th {
+  background: rgba(16, 185, 129, 0.2) !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+  color: #d1ffe5;
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+  padding: 1rem;
+}
+
+.glass-table tbody tr {
+  background: rgba(20, 30, 25, 0.4) !important;
+  border-color: rgba(255, 255, 255, 0.05) !important;
+  transition: all 0.3s ease;
+}
+
+.glass-table tbody tr:hover {
+  background: rgba(16, 185, 129, 0.15) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.3),
+              inset 0 0 10px rgba(16, 185, 129, 0.1);
+  transform: translateX(5px);
+}
+
+.glass-table tbody td {
+  color: #f7fdf8;
+  padding: 1rem;
+  vertical-align: middle;
+}
+
+/* Glass Buttons */
+.glass-btn-accept {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.8), rgba(34, 197, 94, 0.7)) !important;
+  border: 2px solid rgba(16, 185, 129, 0.5) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4),
+              inset 0 0 10px rgba(16, 185, 129, 0.1);
+  transition: all 0.3s ease;
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+}
+
+.glass-btn-accept:hover {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 1), rgba(34, 197, 94, 0.9)) !important;
+  border-color: rgba(16, 185, 129, 0.8) !important;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.7),
+              0 0 50px rgba(16, 185, 129, 0.5),
+              inset 0 0 15px rgba(16, 185, 129, 0.2);
+  transform: translateY(-2px) scale(1.05);
+}
+
+.glass-btn-reject {
+  background: linear-gradient(135deg, rgba(220, 53, 69, 0.8), rgba(255, 80, 80, 0.7)) !important;
+  border: 2px solid rgba(220, 53, 69, 0.5) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 0 15px rgba(220, 53, 69, 0.4),
+              inset 0 0 10px rgba(220, 53, 69, 0.1);
+  transition: all 0.3s ease;
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(220, 53, 69, 0.6);
+}
+
+.glass-btn-reject:hover {
+  background: linear-gradient(135deg, rgba(220, 53, 69, 1), rgba(255, 80, 80, 0.9)) !important;
+  border-color: rgba(220, 53, 69, 0.8) !important;
+  box-shadow: 0 0 25px rgba(220, 53, 69, 0.7),
+              0 0 50px rgba(220, 53, 69, 0.5),
+              inset 0 0 15px rgba(220, 53, 69, 0.2);
+  transform: translateY(-2px) scale(1.05);
+}
+
+/* Glass Heading */
+.glass-heading {
+  color: #d1ffe5;
+  font-weight: 700;
+  text-shadow: 0 0 15px rgba(16, 185, 129, 0.8),
+               0 0 30px rgba(16, 185, 129, 0.6),
+               0 2px 6px rgba(0, 0, 0, 0.6);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.glass-heading::before {
+  content: '';
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(180deg, 
+    rgba(16, 185, 129, 0.8),
+    rgba(255, 215, 0, 0.6),
+    rgba(16, 185, 129, 0.8));
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+}
+
+/* Glass Badge */
+.glass-badge {
+  background: rgba(16, 185, 129, 0.3) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(16, 185, 129, 0.5) !important;
+  color: #d1ffe5 !important;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+/* Glass Link (Screenshot) */
+.glass-link {
+  color: #2bd98e !important;
+  text-decoration: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.5rem;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  transition: all 0.3s ease;
+  display: inline-block;
+}
+
+.glass-link:hover {
+  background: rgba(16, 185, 129, 0.3);
+  border-color: rgba(16, 185, 129, 0.5);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+  transform: translateY(-2px);
+  color: #ffffff !important;
+}
+
+/* Empty State Glass */
+.glass-empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(20, 30, 25, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 0.75rem;
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+/* Generic Glass Container for All Tabs */
+.glass-container {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(11, 22, 16, 0.75));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 2px solid rgba(16, 185, 129, 0.3);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3),
+              0 0 30px rgba(16, 185, 129, 0.15),
+              inset 0 0 20px rgba(16, 185, 129, 0.05);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-container:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4),
+              0 0 50px rgba(16, 185, 129, 0.3),
+              0 0 80px rgba(16, 185, 129, 0.15),
+              inset 0 0 30px rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.6);
+}
+
+/* Glass Details Card */
+.glass-details-card {
+  background: rgba(20, 30, 25, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.glass-details-card:hover {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.3),
+              inset 0 0 10px rgba(16, 185, 129, 0.1);
+}
+
+.glass-details-row {
+  padding: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-details-row:last-child {
+  border-bottom: none;
+}
+
+.glass-details-label {
+  color: #d1ffe5;
+  font-weight: 600;
+  text-shadow: 0 0 5px rgba(16, 185, 129, 0.4);
+}
+
+.glass-details-value {
+  color: #f7fdf8;
+}
+
+/* Glass Form Input */
+.glass-form-input {
+  background: rgba(20, 30, 25, 0.6) !important;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  color: #f7fdf8 !important;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.glass-form-input:focus {
+  background: rgba(20, 30, 25, 0.8) !important;
+  border-color: rgba(16, 185, 129, 0.6) !important;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4),
+              inset 0 0 10px rgba(16, 185, 129, 0.1);
+  color: #ffffff !important;
+}
+
+/* Glass Deposit/Withdraw Buttons */
+.glass-btn-deposit {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.8), rgba(34, 197, 94, 0.7)) !important;
+  border: 2px solid rgba(16, 185, 129, 0.5) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4),
+              inset 0 0 10px rgba(16, 185, 129, 0.1);
+  transition: all 0.3s ease;
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+}
+
+.glass-btn-deposit:hover {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 1), rgba(34, 197, 94, 0.9)) !important;
+  border-color: rgba(16, 185, 129, 0.8) !important;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.7),
+              0 0 50px rgba(16, 185, 129, 0.5),
+              inset 0 0 15px rgba(16, 185, 129, 0.2);
+  transform: translateY(-2px) scale(1.05);
+}
+
+.glass-btn-withdraw {
+  background: linear-gradient(135deg, rgba(220, 53, 69, 0.8), rgba(255, 80, 80, 0.7)) !important;
+  border: 2px solid rgba(220, 53, 69, 0.5) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 0 15px rgba(220, 53, 69, 0.4),
+              inset 0 0 10px rgba(220, 53, 69, 0.1);
+  transition: all 0.3s ease;
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(220, 53, 69, 0.6);
+}
+
+.glass-btn-withdraw:hover {
+  background: linear-gradient(135deg, rgba(220, 53, 69, 1), rgba(255, 80, 80, 0.9)) !important;
+  border-color: rgba(220, 53, 69, 0.8) !important;
+  box-shadow: 0 0 25px rgba(220, 53, 69, 0.7),
+              0 0 50px rgba(220, 53, 69, 0.5),
+              inset 0 0 15px rgba(220, 53, 69, 0.2);
+  transform: translateY(-2px) scale(1.05);
+}
+
+/* Glass Status Button */
+.glass-btn-status {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.8), rgba(34, 197, 94, 0.7)) !important;
+  border: 2px solid rgba(16, 185, 129, 0.5) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.glass-btn-status.danger {
+  background: linear-gradient(135deg, rgba(220, 53, 69, 0.8), rgba(255, 80, 80, 0.7)) !important;
+  border-color: rgba(220, 53, 69, 0.5) !important;
+  box-shadow: 0 0 15px rgba(220, 53, 69, 0.4);
+}
+
+.glass-btn-status:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.7);
+}
+
+.glass-btn-status.danger:hover {
+  box-shadow: 0 0 25px rgba(220, 53, 69, 0.7);
+}
+
+/* Glass Pagination */
+.glass-pagination {
+  background: rgba(20, 30, 25, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.glass-pagination-btn {
+  background: rgba(16, 185, 129, 0.2) !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+  color: #d1ffe5 !important;
+  backdrop-filter: blur(8px);
+  transition: all 0.3s ease;
+}
+
+.glass-pagination-btn:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.4) !important;
+  border-color: rgba(16, 185, 129, 0.6) !important;
+  box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+  transform: translateY(-2px);
+}
+
+.glass-pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Glass Image Preview */
+.glass-image-preview {
+  border: 2px solid rgba(16, 185, 129, 0.3);
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+.glass-image-preview:hover {
+  border-color: rgba(16, 185, 129, 0.6);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+  transform: scale(1.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .pending-withdrawals-container,
+  .glass-container {
+    padding: 1rem;
+  }
+  
+  .glass-table thead th,
+  .glass-table tbody td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.875rem;
+  }
+  
+  .glass-btn-accept,
+  .glass-btn-reject,
+  .glass-btn-deposit,
+  .glass-btn-withdraw {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+  }
+}

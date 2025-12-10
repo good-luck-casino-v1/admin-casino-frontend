@@ -1,18 +1,16 @@
 // security.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  faShieldAlt, faKey, faUserShield, faLock, faSearch, 
-  faFilter, faEye, faBan, faExclamationTriangle, faCheckCircle,
+  faShieldAlt, faKey, faUserShield, faLock, faExclamationTriangle, faCheckCircle,
   faChevronLeft, faChevronRight, faSave, faEdit, faUserCog,
   faNetworkWired, faDatabase, faUserSecret, faServer, faGlobe,
   faPlus, faTimes, faSync, faFingerprint, faIdCard, faFileAlt,
   faUserClock, faUserLock, faLaptopCode, faCertificate, faHistory,
-  faChartLine, faExclamationCircle, faUserTie, faGraduationCap,
-  faCogs, faPlug, faCloud, faKeycdn, faUserSlash, faUserCheck,
-  faPassport, faMoneyCheck, faVirusSlash, faShieldVirus, faUserShieldAlt
+  faChartLine, faExclamationCircle, faGraduationCap,
+  faCogs, faPlug, faCloud, faShieldVirus
 } from '@fortawesome/free-solid-svg-icons';
-import { Modal, Button, Form, Alert, Table, Dropdown, Badge, Spinner, Nav, Row, Col, Card, ToggleButtonGroup, ToggleButton, InputGroup } from 'react-bootstrap';
+import { Modal, Button, Form, Alert, Table, Badge, Spinner, Nav, Row, Col, Card } from 'react-bootstrap';
 import axios from 'axios';
 
 const Security = () => {
@@ -95,13 +93,8 @@ const Security = () => {
  const API_URL = `${process.env.REACT_APP_API_URL}/api/security`;
 
   
-  // Fetch security settings on component mount
-  useEffect(() => {
-    fetchSecuritySettings();
-  }, []);
-  
   // Fetch security settings from API
-  const fetchSecuritySettings = async () => {
+  const fetchSecuritySettings = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_URL}/settings`);
@@ -112,7 +105,12 @@ const Security = () => {
       setAlert({ show: true, message: 'Error fetching security settings', variant: 'danger' });
       setLoading(false);
     }
-  };
+  }, [API_URL]);
+
+  // Fetch security settings on component mount
+  useEffect(() => {
+    fetchSecuritySettings();
+  }, [fetchSecuritySettings]);
   
   // Handle edit button click
   const handleEditClick = (setting, data) => {

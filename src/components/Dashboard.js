@@ -3,10 +3,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faUsers, faUserTie, faUserShield, faUserSecret, faGamepad,
   faMoneyBillWave, faChartLine, faTicketAlt, faExchangeAlt, 
-  faCalendarAlt, faEye, faCheckCircle, faTimesCircle, 
-  faClock, faSpinner, faSearch, faPlus, faUserCheck, faUserTimes
+  faCheckCircle, faTimesCircle, 
+  faClock, faUserCheck, faUserTimes
 } from '@fortawesome/free-solid-svg-icons';
-import { Card, Row, Col, Table, Badge, Button, Alert, Spinner, Form, Modal } from 'react-bootstrap';
+import { Card, Row, Col, Table, Badge, Button, Alert, Spinner, Form } from 'react-bootstrap';
 import axios from 'axios';
 
 const Dashboard = () => {
@@ -33,7 +33,6 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [showAddAdminModal, setShowAddAdminModal] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -218,7 +217,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <Card.Title className="fs-6">Total Super Admin</Card.Title>
-                <Card.Text className="fs-6">{dashboardData.totalSuperAdmin || 0}</Card.Text>
+                <Card.Text className="fs-6">{dashboardData.totalSuperAdmin-1 || 0}</Card.Text>
               </div>
             </Card.Body>
           </Card>

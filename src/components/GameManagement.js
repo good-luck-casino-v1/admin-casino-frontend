@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  faGamepad, faPlus, faEye, faSearch, faFilter, faRedo,
+  faGamepad, faPlus, faEye, faSearch, faRedo,
   faChevronLeft, faChevronRight, faTag, faDollarSign,
-  faImage, faCalendar, faToggleOn, faToggleOff, faIdCard,
+  faImage, faToggleOn, faToggleOff, faIdCard,
   faUpload, faTimes, faEdit
 } from '@fortawesome/free-solid-svg-icons';
 import { Modal, Button, Form, Alert, Table, Spinner, Row, Col, Badge, Image } from 'react-bootstrap';
@@ -52,19 +52,8 @@ const GameManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(20);
   
-  // Fetch games and count on component mount and when filters change
-  useEffect(() => {
-    fetchGames();
-    fetchGameCount();
-  }, [filters]);
-  
-  // Apply search and filters whenever games or searchTerm changes
-  useEffect(() => {
-    applyFiltersAndSearch();
-  }, [games, searchTerm]);
-  
   // Fetch games from API
-  const fetchGames = async () => {
+  const fetchGames = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/games`, {
@@ -77,7 +66,7 @@ const GameManagement = () => {
       setAlert({ show: true, message: 'Error fetching games', variant: 'danger' });
       setLoading(false);
     }
-  };
+  }, [filters]);
   
   // Fetch game count from API
   const fetchGameCount = async () => {
@@ -90,7 +79,7 @@ const GameManagement = () => {
   };
   
   // Apply search and filters
-  const applyFiltersAndSearch = () => {
+  const applyFiltersAndSearch = useCallback(() => {
     let result = [...games];
     
     // Apply search term
@@ -107,7 +96,18 @@ const GameManagement = () => {
     
     setFilteredGames(result);
     setCurrentPage(1); // Reset to first page when filtering
-  };
+  }, [games, searchTerm]);
+
+  // Fetch games and count on component mount and when filters change
+  useEffect(() => {
+    fetchGames();
+    fetchGameCount();
+  }, [fetchGames]);
+  
+  // Apply search and filters whenever games or searchTerm changes
+  useEffect(() => {
+    applyFiltersAndSearch();
+  }, [applyFiltersAndSearch]);
   
   // Handle form input changes for Add Game
   const handleInputChange = (e) => {
@@ -169,7 +169,7 @@ const GameManagement = () => {
     }
     
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/games/ins`, formDataObj, {
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/games/ins`, formDataObj, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -210,7 +210,7 @@ const GameManagement = () => {
     }
     
     try {
-      const response = await axios.put(`${process.env.REACT_APP_API_URL}/api/games/${updateData.id}`, formDataObj, {
+      await axios.put(`${process.env.REACT_APP_API_URL}/api/games/${updateData.id}`, formDataObj, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

@@ -1,14 +1,15 @@
-  import React, { useState, useEffect } from 'react';
+  import React, { useState, useEffect, useCallback } from 'react';
   import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
   import { 
-    faUserPlus, faTimes, faUser, faEnvelope, faPhone, 
-    faCalendar, faLock, faWallet, faSearch, faFilter, 
-    faEye, faBan, faMoneyBillWave, faTicketAlt, faRedo,
-    faChevronLeft, faChevronRight, faCheck, faTimes as faTimesIcon,
-    faIdCard, faPlus, faMinus
+    faUserPlus, faUser, faEnvelope, faPhone, 
+    faCalendar, faLock, faWallet, faSearch, 
+    faEye, faMoneyBillWave, faRedo,
+    faChevronLeft, faChevronRight, faCheck, faTimes,
+    faIdCard, faPlus, faMinus, faTicketAlt, faFileAlt, faList
   } from '@fortawesome/free-solid-svg-icons';
-  import { Modal, Button, Form, Alert, Table, Dropdown, Badge, Spinner, Nav, Row, Col } from 'react-bootstrap';
+  import { Modal, Button, Form, Alert, Table, Badge, Spinner, Nav, Row, Col } from 'react-bootstrap';
   import axios from 'axios';
+  import '../App.css';
 
   const UserManagement = () => {
     // State declarations
@@ -46,19 +47,8 @@
     // Deposit/Withdraw state
     const [depositWithdrawAmount, setDepositWithdrawAmount] = useState('');
     
-    // Fetch users and count on component mount and when filters/search change
-    useEffect(() => {
-      fetchUsers();
-      fetchUserCount();
-    }, [filters]);
-    
-    // Apply search and filters whenever users or searchTerm changes
-    useEffect(() => {
-      applyFiltersAndSearch();
-    }, [users, searchTerm]);
-    
     // Fetch users from API
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
       setLoading(true);
       try {
         const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/users`,{
@@ -71,7 +61,7 @@
         setAlert({ show: true, message: 'Error fetching users', variant: 'danger' });
         setLoading(false);
       }
-    };
+    }, [filters]);
     
     // Fetch user count from API
     const fetchUserCount = async () => {
@@ -84,7 +74,7 @@
     };
     
     // Apply search and filters
-    const applyFiltersAndSearch = () => {
+    const applyFiltersAndSearch = useCallback(() => {
       let result = [...users];
       
       // Apply search term
@@ -92,15 +82,26 @@
         const term = searchTerm.toLowerCase();
         result = result.filter(user => 
           user.id.toString().includes(term) ||
-          user.name.toLowerCase().includes(term) ||
-          user.email.toLowerCase().includes(term) ||
-          user.mobile.toLowerCase().includes(term)
+          (user.name && user.name.toLowerCase().includes(term)) ||
+          (user.email && user.email.toLowerCase().includes(term)) ||
+          (user.mobile && user.mobile.toLowerCase().includes(term))
         );
       }
       
       setFilteredUsers(result);
       setCurrentPage(1);
-    };
+    }, [users, searchTerm]);
+
+    // Fetch users and count on component mount and when filters/search change
+    useEffect(() => {
+      fetchUsers();
+      fetchUserCount();
+    }, [fetchUsers]);
+    
+    // Apply search and filters whenever users or searchTerm changes
+    useEffect(() => {
+      applyFiltersAndSearch();
+    }, [applyFiltersAndSearch]);
     
     // Handle form input changes
     const handleInputChange = (e) => {
@@ -123,7 +124,7 @@
     const handleSubmit = async (e) => {
       e.preventDefault();
       try {
-        const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/users`,formData);
+        await axios.post(`${process.env.REACT_APP_API_URL}/api/users`,formData);
         setAlert({ show: true, message: `User created with ${formData.name}`, variant: 'success' });
         setShowModal(false);
         fetchUsers();
@@ -263,7 +264,6 @@ const handleTransactionStatusUpdate = async (tx, status) => {
 
       const payoutData = {
         transaction_id: tx.transaction_id,
-        transaction_id: tx.id,
         amount: tx.amount,
         userId: tx.user_id,
         payment_method: method,
@@ -764,53 +764,81 @@ const handleTransactionStatusUpdate = async (tx, status) => {
             {currentUser && viewData[currentUser.id] && (
               <div>
                 {activeTab === 'details' && viewData[currentUser.id].details && (
-                  <div>
-                    <h5 className="text-warning">User Details</h5>
-                    <Row className="mb-2">
-                      <Col sm={4}><strong>ID:</strong></Col>
-                      <Col sm={8}>{viewData[currentUser.id].details.id}</Col>
-                    </Row>
-                    <Row className="mb-2">
-                      <Col sm={4}><strong>Name:</strong></Col>
-                      <Col sm={8}>{viewData[currentUser.id].details.name}</Col>
-                    </Row>
-                    <Row className="mb-2">
-                      <Col sm={4}><strong>Email:</strong></Col>
-                      <Col sm={8}>{viewData[currentUser.id].details.email}</Col>
-                    </Row>
-                    <Row className="mb-2">
-                      <Col sm={4}><strong>Mobile:</strong></Col>
-                      <Col sm={8}>{viewData[currentUser.id].details.mobile}</Col>
-                    </Row>
-                    <Row className="mb-2">
-                      <Col sm={4}><strong>DOB:</strong></Col>
-                      <Col sm={8}>{viewData[currentUser.id].details.dob}</Col>
-                    </Row>
-                    <Row className="mb-2">
-                      <Col sm={4}><strong>Wallet Balance:</strong></Col>
-                      <Col sm={8}>₹{viewData[currentUser.id].details.wallet_balance}</Col>
-                    </Row>
-                    <Row className="mb-2">
-                      <Col sm={4}><strong>Referred By:</strong></Col>
-                      <Col sm={8}>{viewData[currentUser.id].details.referred_by}</Col>
-                    </Row>
-                    <Row className="mb-2">
-                      <Col sm={4}><strong>Status:</strong></Col>
-                      <Col sm={8}>
-                        <Badge bg={viewData[currentUser.id].details.status === 'Active' ? 'success' : 'danger'}>
-                          {viewData[currentUser.id].details.status}
-                        </Badge>
-                      </Col>
-                    </Row>
-                    <Row className="mb-2">
-                      <Col sm={4}><strong>Role:</strong></Col>
-                      <Col sm={8}>{viewData[currentUser.id].details.role}</Col>
-                    </Row>
+                  <div className="glass-container">
+                    <h5 className="glass-heading">
+                      <FontAwesomeIcon icon={faUser} />
+                      User Details
+                    </h5>
+                    <div className="glass-details-card">
+                      <div className="glass-details-row">
+                        <Row>
+                          <Col sm={4} className="glass-details-label">ID:</Col>
+                          <Col sm={8} className="glass-details-value">{viewData[currentUser.id].details.id}</Col>
+                        </Row>
+                      </div>
+                      <div className="glass-details-row">
+                        <Row>
+                          <Col sm={4} className="glass-details-label">Name:</Col>
+                          <Col sm={8} className="glass-details-value">{viewData[currentUser.id].details.name}</Col>
+                        </Row>
+                      </div>
+                      <div className="glass-details-row">
+                        <Row>
+                          <Col sm={4} className="glass-details-label">Email:</Col>
+                          <Col sm={8} className="glass-details-value">{viewData[currentUser.id].details.email}</Col>
+                        </Row>
+                      </div>
+                      <div className="glass-details-row">
+                        <Row>
+                          <Col sm={4} className="glass-details-label">Mobile:</Col>
+                          <Col sm={8} className="glass-details-value">{viewData[currentUser.id].details.mobile}</Col>
+                        </Row>
+                      </div>
+                      <div className="glass-details-row">
+                        <Row>
+                          <Col sm={4} className="glass-details-label">DOB:</Col>
+                          <Col sm={8} className="glass-details-value">{viewData[currentUser.id].details.dob}</Col>
+                        </Row>
+                      </div>
+                      <div className="glass-details-row">
+                        <Row>
+                          <Col sm={4} className="glass-details-label">Wallet Balance:</Col>
+                          <Col sm={8}>
+                            <strong style={{ color: '#2bd98e', textShadow: '0 0 10px rgba(16, 185, 129, 0.5)' }}>
+                              ₹{(parseFloat(viewData[currentUser.id].details.wallet_balance) || 0).toFixed(2)}
+                            </strong>
+                          </Col>
+                        </Row>
+                      </div>
+                      <div className="glass-details-row">
+                        <Row>
+                          <Col sm={4} className="glass-details-label">Referred By:</Col>
+                          <Col sm={8} className="glass-details-value">{viewData[currentUser.id].details.referred_by}</Col>
+                        </Row>
+                      </div>
+                      <div className="glass-details-row">
+                        <Row>
+                          <Col sm={4} className="glass-details-label">Status:</Col>
+                          <Col sm={8}>
+                            <Badge className="glass-badge" bg={viewData[currentUser.id].details.status === 'Active' ? 'success' : 'danger'}>
+                              {viewData[currentUser.id].details.status}
+                            </Badge>
+                          </Col>
+                        </Row>
+                      </div>
+                      <div className="glass-details-row">
+                        <Row>
+                          <Col sm={4} className="glass-details-label">Role:</Col>
+                          <Col sm={8} className="glass-details-value">{viewData[currentUser.id].details.role}</Col>
+                        </Row>
+                      </div>
+                    </div>
                     
                     <div className="d-flex justify-content-end mt-4">
                       {viewData[currentUser.id].details.status === 'Active' ? (
                         <Button 
                           variant="danger" 
+                          className="glass-btn-status danger"
                           onClick={() => handleUserStatusUpdateAndClose(currentUser.id, 'Suspended')}
                         >
                           Suspend User
@@ -818,6 +846,7 @@ const handleTransactionStatusUpdate = async (tx, status) => {
                       ) : (
                         <Button 
                           variant="success" 
+                          className="glass-btn-status"
                           onClick={() => handleUserStatusUpdateAndClose(currentUser.id, 'Active')}
                         >
                           Activate User
@@ -828,63 +857,98 @@ const handleTransactionStatusUpdate = async (tx, status) => {
                 )}
                 
                 {activeTab === 'depositWithdraw' && viewData[currentUser.id].details && (
-                  <div>
-                    <h5 className="text-warning">Deposit/Withdraw</h5>
-                    <Row className="mb-2">
-                      <Col sm={4}><FontAwesomeIcon icon={faIdCard} /> ID:</Col>
-                      <Col sm={8}>{viewData[currentUser.id].details.id}</Col>
-                    </Row>
-                    <Row className="mb-2">
-                      <Col sm={4}><FontAwesomeIcon icon={faUser} /> Name:</Col>
-                      <Col sm={8}>{viewData[currentUser.id].details.name}</Col>
-                    </Row>
-                    <Row className="mb-2">
-                      <Col sm={4}><FontAwesomeIcon icon={faEnvelope} /> Email:</Col>
-                      <Col sm={8}>{viewData[currentUser.id].details.email}</Col>
-                    </Row>
-                    <Row className="mb-2">
-                      <Col sm={4}><FontAwesomeIcon icon={faPhone} /> Mobile:</Col>
-                      <Col sm={8}>{viewData[currentUser.id].details.mobile}</Col>
-                    </Row>
-                    <Row className="mb-2">
-                      <Col sm={4}><FontAwesomeIcon icon={faWallet} /> Wallet Balance:</Col>
-                      <Col sm={8}>₹{viewData[currentUser.id].details.wallet_balance}</Col>
-                    </Row>
+                  <div className="glass-container">
+                    <h5 className="glass-heading">
+                      <FontAwesomeIcon icon={faMoneyBillWave} />
+                      Deposit/Withdraw
+                    </h5>
+                    <div className="glass-details-card">
+                      <div className="glass-details-row">
+                        <Row>
+                          <Col sm={4} className="glass-details-label">
+                            <FontAwesomeIcon icon={faIdCard} className="me-2" /> ID:
+                          </Col>
+                          <Col sm={8} className="glass-details-value">{viewData[currentUser.id].details.id}</Col>
+                        </Row>
+                      </div>
+                      <div className="glass-details-row">
+                        <Row>
+                          <Col sm={4} className="glass-details-label">
+                            <FontAwesomeIcon icon={faUser} className="me-2" /> Name:
+                          </Col>
+                          <Col sm={8} className="glass-details-value">{viewData[currentUser.id].details.name}</Col>
+                        </Row>
+                      </div>
+                      <div className="glass-details-row">
+                        <Row>
+                          <Col sm={4} className="glass-details-label">
+                            <FontAwesomeIcon icon={faEnvelope} className="me-2" /> Email:
+                          </Col>
+                          <Col sm={8} className="glass-details-value">{viewData[currentUser.id].details.email}</Col>
+                        </Row>
+                      </div>
+                      <div className="glass-details-row">
+                        <Row>
+                          <Col sm={4} className="glass-details-label">
+                            <FontAwesomeIcon icon={faPhone} className="me-2" /> Mobile:
+                          </Col>
+                          <Col sm={8} className="glass-details-value">{viewData[currentUser.id].details.mobile}</Col>
+                        </Row>
+                      </div>
+                      <div className="glass-details-row">
+                        <Row>
+                          <Col sm={4} className="glass-details-label">
+                            <FontAwesomeIcon icon={faWallet} className="me-2" /> Wallet Balance:
+                          </Col>
+                          <Col sm={8}>
+                            <strong style={{ color: '#2bd98e', textShadow: '0 0 10px rgba(16, 185, 129, 0.5)' }}>
+                              ₹{(parseFloat(viewData[currentUser.id].details.wallet_balance) || 0).toFixed(2)}
+                            </strong>
+                          </Col>
+                        </Row>
+                      </div>
+                    </div>
 
-                    <Form.Group className="mb-3">
-                      <Form.Label><FontAwesomeIcon icon={faMoneyBillWave} /> Amount</Form.Label>
+                    <Form.Group className="mb-3 mt-4">
+                      <Form.Label className="glass-details-label">
+                        <FontAwesomeIcon icon={faMoneyBillWave} className="me-2" /> Amount
+                      </Form.Label>
                       <Form.Control
                         type="number"
                         placeholder="Enter amount"
                         value={depositWithdrawAmount}
                         onChange={(e) => setDepositWithdrawAmount(e.target.value)}
-                        className="bg-dark text-light border-secondary"
+                        className="glass-form-input"
                       />
                     </Form.Group>
 
-                    <div className="d-flex">
+                    <div className="d-flex gap-2">
                       <Button 
                         variant="success" 
-                        className="me-2"
+                        className="glass-btn-deposit"
                         onClick={() => handleDepositWithdraw('deposit')}
                       >
-                        <FontAwesomeIcon icon={faPlus} /> Deposit
+                        <FontAwesomeIcon icon={faPlus} className="me-1" /> Deposit
                       </Button>
                       <Button 
                         variant="danger"
+                        className="glass-btn-withdraw"
                         onClick={() => handleDepositWithdraw('withdraw')}
                       >
-                        <FontAwesomeIcon icon={faMinus} /> Withdraw
+                        <FontAwesomeIcon icon={faMinus} className="me-1" /> Withdraw
                       </Button>
                     </div>
                   </div>
                 )}
                 
                 {activeTab === 'tickets' && viewData[currentUser.id].tickets && (
-                  <div>
-                    <h5 className="text-warning">Tickets</h5>
+                  <div className="glass-container">
+                    <h5 className="glass-heading">
+                      <FontAwesomeIcon icon={faTicketAlt} />
+                      Tickets
+                    </h5>
                     {viewData[currentUser.id].tickets.filter(t => t.status === 'open').length > 0 ? (
-                      <Table striped bordered hover size="sm" variant="dark" className="mobile-detail-table">
+                      <Table striped bordered hover size="sm" variant="dark" className="glass-table mobile-detail-table">
                         <thead>
                           <tr>
                             <th>Subject</th>
@@ -899,60 +963,76 @@ const handleTransactionStatusUpdate = async (tx, status) => {
                             .filter(ticket => ticket.status === 'open')
                             .map((ticket) => (
                             <tr key={ticket.id}>
-                              <td>{ticket.subject}</td>
+                              <td>
+                                <strong style={{ color: '#d1ffe5' }}>{ticket.subject}</strong>
+                              </td>
                               <td className="d-none d-md-table-cell">{ticket.message}</td>
                               <td className="d-none d-sm-table-cell">{ticket.email}</td>
-                                <td>
-                              {ticket.evidence ? (
-                            <a 
-                            href={ticket.evidence_url || `${process.env.REACT_APP_SPACES_CDN}/${ticket.evidence}`} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                          >
-                            <img
-                              src={ticket.evidence_url || `${process.env.REACT_APP_SPACES_CDN}/${ticket.evidence}`}
-                              alt="Evidence"
-                              style={{ width: "80px", height: "60px", objectFit: "cover", borderRadius: "5px" }}
-                            />
-                          </a>
-
-                          ) : 'N/A'}
-
+                              <td>
+                                {ticket.evidence ? (
+                                  <a 
+                                    href={ticket.evidence_url || `${process.env.REACT_APP_SPACES_CDN}/${ticket.evidence}`} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                  >
+                                    <img
+                                      src={ticket.evidence_url || `${process.env.REACT_APP_SPACES_CDN}/${ticket.evidence}`}
+                                      alt="Evidence"
+                                      className="glass-image-preview"
+                                      style={{ width: "80px", height: "60px", objectFit: "cover" }}
+                                    />
+                                  </a>
+                                ) : (
+                                  <span style={{ color: 'rgba(255, 255, 255, 0.4)' }}>N/A</span>
+                                )}
                               </td>
                               <td>
-                                <>
+                                <div className="d-flex gap-2 flex-wrap">
                                   <Button 
                                     variant="success" 
                                     size="sm" 
-                                    className="me-1"
+                                    className="glass-btn-accept"
                                     onClick={() => handleTicketStatusUpdate(ticket.id, 'closed')}
                                   >
-                                    <FontAwesomeIcon icon={faCheck} /> <span className="d-none d-sm-inline">Accept</span>
+                                    <FontAwesomeIcon icon={faCheck} className="me-1" />
+                                    <span className="d-none d-sm-inline">Accept</span>
                                   </Button>
                                   <Button 
                                     variant="danger" 
                                     size="sm"
+                                    className="glass-btn-reject"
                                     onClick={() => handleTicketStatusUpdate(ticket.id, 'rejected')}
                                   >
-                                    <FontAwesomeIcon icon={faTimesIcon} /> <span className="d-none d-sm-inline">Reject</span>
+                                    <FontAwesomeIcon icon={faTimes} className="me-1" />
+                                    <span className="d-none d-sm-inline">Reject</span>
                                   </Button>
-                                </>
+                                </div>
                               </td>
                             </tr>
                           ))}
                         </tbody>
                       </Table>
                     ) : (
-                      <p className="text-muted">No open tickets found</p>
+                      <div className="glass-empty-state">
+                        <FontAwesomeIcon icon={faTicketAlt} size="3x" style={{ opacity: 0.3, marginBottom: '1rem' }} />
+                        <p className="mb-0">No open tickets found</p>
+                      </div>
                     )}
                   </div>
                 )}
                 
                 {activeTab === 'pendingTransactions' && viewData[currentUser.id].pendingTransactions && (
-                  <div>
-                    <h5 className="text-warning">Pending Transactions</h5>
-                    {viewData[currentUser.id].pendingTransactions.length > 0 ? (
-                      <Table striped bordered hover size="sm" variant="dark" className="mobile-detail-table">
+                  <div className="pending-withdrawals-container">
+                    <h5 className="glass-heading">
+                      <FontAwesomeIcon icon={faMoneyBillWave} />
+                      Pending Withdrawals
+                    </h5>
+                    {viewData[currentUser.id].pendingTransactions.filter(tx => {
+                      const type = (tx.type || "").toLowerCase();
+                      // ✅ Only show withdrawals - hide all deposits
+                      return type === "withdraw" || type === "withdrawal";
+                    }).length > 0 ? (
+                      <Table striped bordered hover size="sm" variant="dark" className="glass-table mobile-detail-table">
                         <thead>
                           <tr>
                             <th>Type</th>
@@ -965,72 +1045,90 @@ const handleTransactionStatusUpdate = async (tx, status) => {
                         </thead>
                         <tbody>
                           {viewData[currentUser.id].pendingTransactions
-    .filter(tx => {
-
-      const method = (tx.payment_method || "").toLowerCase();
-      const type = (tx.type || "").toLowerCase();
-
-      // ❌ HIDE gateway deposits
-      if (type === "deposit" && (method === "toppay" || method === "cloudpay")) {
-        return false;
-      }
-
-      return true; // ✔ show normal items
-    })
-    .map((tx) => (
-      <tr key={tx.id}>
-        <td>{tx.type}</td>
-        <td>₹{tx.amount}</td>
-        <td className="d-none d-md-table-cell">{tx.payment_method}</td>
-        <td className="d-none d-sm-table-cell">{tx.utr}</td>
-        <td>
-  {tx.screenshot ? (
-    <a
-      href={`${process.env.REACT_APP_SPACES_CDN}/${tx.screenshot}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-light"
-    >
-      View
-    </a>
-  ) : "N/A"}
-</td>
-
-        <td>
-          <Button 
-            variant="success" 
-            size="sm" 
-            className="me-1"
-            onClick={() => handleTransactionStatusUpdate(tx, 'completed')}
-          >
-            ✓ Accept
-          </Button>
-          <Button 
-            variant="danger" 
-            size="sm"
-            onClick={() => handleTransactionStatusUpdate(tx, 'reject')}
-          >
-            ✗ Reject
-          </Button>
-        </td>
-      </tr>
-    ))
-  }
-
+                            .filter(tx => {
+                              const type = (tx.type || "").toLowerCase();
+                              // ✅ Only show withdrawals - hide all deposits
+                              return type === "withdraw" || type === "withdrawal";
+                            })
+                            .map((tx) => (
+                              <tr key={tx.id}>
+                                <td>
+                                  <Badge className="glass-badge">
+                                    {tx.type}
+                                  </Badge>
+                                </td>
+                                <td>
+                                  <strong style={{ color: '#2bd98e', textShadow: '0 0 10px rgba(16, 185, 129, 0.5)' }}>
+                                    ₹{parseFloat(tx.amount || 0).toFixed(2)}
+                                  </strong>
+                                </td>
+                                <td className="d-none d-md-table-cell">
+                                  <Badge bg="secondary" className="glass-badge">
+                                    {tx.payment_method || 'N/A'}
+                                  </Badge>
+                                </td>
+                                <td className="d-none d-sm-table-cell" style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
+                                  {tx.utr || 'N/A'}
+                                </td>
+                                <td>
+                                  {tx.screenshot ? (
+                                    <a
+                                      href={`${process.env.REACT_APP_SPACES_CDN}/${tx.screenshot}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="glass-link"
+                                    >
+                                      <FontAwesomeIcon icon={faEye} className="me-1" />
+                                      View
+                                    </a>
+                                  ) : (
+                                    <span style={{ color: 'rgba(255, 255, 255, 0.4)' }}>N/A</span>
+                                  )}
+                                </td>
+                                <td>
+                                  <div className="d-flex gap-2 flex-wrap">
+                                    <Button 
+                                      variant="success" 
+                                      size="sm" 
+                                      className="glass-btn-accept"
+                                      onClick={() => handleTransactionStatusUpdate(tx, 'completed')}
+                                    >
+                                      <FontAwesomeIcon icon={faCheck} className="me-1" />
+                                      Accept
+                                    </Button>
+                                    <Button 
+                                      variant="danger" 
+                                      size="sm"
+                                      className="glass-btn-reject"
+                                      onClick={() => handleTransactionStatusUpdate(tx, 'reject')}
+                                    >
+                                      <FontAwesomeIcon icon={faTimes} className="me-1" />
+                                      Reject
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
                         </tbody>
                       </Table>
                     ) : (
-                      <p className="text-muted">No pending transactions found</p>
+                      <div className="glass-empty-state">
+                        <FontAwesomeIcon icon={faMoneyBillWave} size="3x" style={{ opacity: 0.3, marginBottom: '1rem' }} />
+                        <p className="mb-0">No pending withdrawals found</p>
+                      </div>
                     )}
                   </div>
                 )}
                 
                 {activeTab === 'completedTransactions' && viewData[currentUser.id].completedTransactions && (
-                  <div>
-                    <h5 className="text-warning">Completed Transactions</h5>
+                  <div className="glass-container">
+                    <h5 className="glass-heading">
+                      <FontAwesomeIcon icon={faList} />
+                      Completed Transactions
+                    </h5>
                     {viewData[currentUser.id].completedTransactions.length > 0 ? (
                       <>
-                        <Table striped bordered hover size="sm" variant="dark" className="mobile-detail-table">
+                        <Table striped bordered hover size="sm" variant="dark" className="glass-table mobile-detail-table">
                           <thead>
                             <tr>
                               <th>Type</th>
@@ -1043,8 +1141,16 @@ const handleTransactionStatusUpdate = async (tx, status) => {
                               .slice(indexOfFirstTransaction, indexOfLastTransaction)
                               .map((tx, index) => (
                               <tr key={index}>
-                                <td>{tx.type}</td>
-                                <td>₹{tx.amount}</td>
+                                <td>
+                                  <Badge className="glass-badge">
+                                    {tx.type}
+                                  </Badge>
+                                </td>
+                                <td>
+                                  <strong style={{ color: '#2bd98e', textShadow: '0 0 10px rgba(16, 185, 129, 0.5)' }}>
+                                    ₹{parseFloat(tx.amount || 0).toFixed(2)}
+                                  </strong>
+                                </td>
                                 <td className="d-none d-md-table-cell">{tx.created_at}</td>
                               </tr>
                             ))}
@@ -1053,32 +1159,36 @@ const handleTransactionStatusUpdate = async (tx, status) => {
                         
                         {/* Transactions Pagination */}
                         {viewData[currentUser.id].completedTransactions.length > transactionsPerPage && (
-                          <div className="d-flex justify-content-between align-items-center mt-3">
-                            <div>
+                          <div className="glass-pagination d-flex justify-content-between align-items-center">
+                            <div className="glass-details-value">
                               Showing {indexOfFirstTransaction + 1} to {Math.min(indexOfLastTransaction, viewData[currentUser.id].completedTransactions.length)} of {viewData[currentUser.id].completedTransactions.length} entries
                             </div>
-                            <div className="d-flex">
+                            <div className="d-flex gap-2">
                               <Button 
                                 variant="outline-light" 
                                 onClick={() => paginateTransactions(transactionsPage - 1)} 
                                 disabled={transactionsPage === 1}
-                                className="me-2"
+                                className="glass-pagination-btn"
                               >
-                                <FontAwesomeIcon icon={faChevronLeft} /> Previous
+                                <FontAwesomeIcon icon={faChevronLeft} className="me-1" /> Previous
                               </Button>
                               <Button 
                                 variant="outline-light" 
                                 onClick={() => paginateTransactions(transactionsPage + 1)} 
                                 disabled={transactionsPage === Math.ceil(viewData[currentUser.id].completedTransactions.length / transactionsPerPage)}
+                                className="glass-pagination-btn"
                               >
-                                Next <FontAwesomeIcon icon={faChevronRight} />
+                                Next <FontAwesomeIcon icon={faChevronRight} className="ms-1" />
                               </Button>
                             </div>
                           </div>
                         )}
                       </>
                     ) : (
-                      <p className="text-muted">No completed transactions found</p>
+                      <div className="glass-empty-state">
+                        <FontAwesomeIcon icon={faList} size="3x" style={{ opacity: 0.3, marginBottom: '1rem' }} />
+                        <p className="mb-0">No completed transactions found</p>
+                      </div>
                     )}
                   </div>
                 )}

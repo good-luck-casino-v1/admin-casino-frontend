@@ -274,7 +274,7 @@ return (
   <div className="min-vh-100 bg-dark text-white">
     {/* Admin Navbar - Fixed */}
     <nav className="navbar navbar-expand-lg navbar-dark bg-success fixed-top">
-      <div className="container-fluid d-flex justify-content-between align-items-center px-3">
+      <div className="container-fluid d-flex justify-content-between align-items-center px-3 pe-5">
         
         {/* Left side - Logo + Brand Name */}
         <div className="d-flex align-items-center">
@@ -293,7 +293,7 @@ return (
         </div>
           
           {/* Custom Dropdown */}
-          <div className="dropdown me-3" ref={dropdownRef}>
+          <div className="dropdown me-5" ref={dropdownRef}>
             <button 
               className="btn btn-light d-flex align-items-center" 
               type="button" 
@@ -310,13 +310,13 @@ return (
                 }
                 alt="Admin"
                 className="rounded-circle me-2"
-                width="30"
-                height="30"
+                width="25"
+                height="25"
               />
 
               ) : (
                 <div className="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" 
-                     style={{ width: '30px', height: '30px' }}>
+                     style={{ width: '25px', height: '25px' }}>
                   <FaUser />
                 </div>
               )}
@@ -324,7 +324,7 @@ return (
             </button>
             
             {showDropdown && (
-              <ul className="dropdown-menu dropdown-menu-end dropdown-menu-dark show" style={{ zIndex: 1050 }}>
+              <ul className="dropdown-menu dropdown-menu-sm-start dropdown-menu-dark show" style={{ zIndex: 1050,textAlign:'left',fontSize:'14px' }}>
                 <li>
                   <button 
                     className="dropdown-item d-flex align-items-center"

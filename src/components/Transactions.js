@@ -1,21 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faExchangeAlt,
   faSearch,
-  faFilter,
   faRedo,
   faChevronLeft,
   faChevronRight,
   faEye,
   faCheck,
   faTimes,
-  faMoneyBillWave,
-  faCreditCard,
-  faUser,
-  faCalendar,
-  faImage,
-  faFileAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   Modal,
@@ -64,39 +57,8 @@ const Transactions = () => {
   const [agentCurrentPage, setAgentCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
 
-  // Fetch transactions and count on component mount and when filters change
-  useEffect(() => {
-    fetchTransactions();
-    fetchTransactionCount();
-  }, [filters, activeSubTab]);
-
-  // Fetch agent transactions when tab or filters change
-  useEffect(() => {
-    if (activeTab === "agent") {
-      fetchAgentTransactions();
-    }
-  }, [activeTab, activeSubTab, agentFilters]);
-
-  //   useEffect(() => {
-  //   if (alert.show) {
-  //     const timer = setTimeout(() => setAlert({ show: false }), 4000);
-  //     return () => clearTimeout(timer);
-  //   }
-  // }, [alert]);
-
-  // Apply search and filters whenever transactions or searchTerm changes
-  useEffect(() => {
-    applyFiltersAndSearch();
-  }, [transactions, searchTerm]);
-
-  // Apply search and filters for agent transactions
-  useEffect(() => {
-    applyAgentFiltersAndSearch();
-  }, [agentTransactions, agentSearchTerm]);
-
   // Fetch transactions from API
-  // Replace fetchTransactions in Transactions component with this version
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(
@@ -159,10 +121,10 @@ const Transactions = () => {
       });
       setLoading(false);
     }
-  };
+  }, [filters, activeSubTab]);
 
   // Fetch agent transactions from API
-  const fetchAgentTransactions = async () => {
+  const fetchAgentTransactions = useCallback(async () => {
     setAgentLoading(true);
     try {
       const response = await axios.get(
@@ -182,7 +144,7 @@ const Transactions = () => {
       });
       setAgentLoading(false);
     }
-  };
+  }, [activeSubTab, agentFilters]);
 
   // Fetch transaction count from API
   const fetchTransactionCount = async () => {
@@ -197,7 +159,7 @@ const Transactions = () => {
   };
 
   // Apply search and filters
-  const applyFiltersAndSearch = () => {
+  const applyFiltersAndSearch = useCallback(() => {
     let result = [...transactions];
 
     // Apply search term
@@ -215,10 +177,10 @@ const Transactions = () => {
 
     setFilteredTransactions(result);
     setCurrentPage(1); // Reset to first page when filtering
-  };
+  }, [transactions, searchTerm]);
 
   // Apply search and filters for agent transactions
-  const applyAgentFiltersAndSearch = () => {
+  const applyAgentFiltersAndSearch = useCallback(() => {
     let result = [...agentTransactions];
 
     // Apply type filter
@@ -240,7 +202,30 @@ const Transactions = () => {
 
     setFilteredAgentTransactions(result);
     setAgentCurrentPage(1); // Reset to first page when filtering
-  };
+  }, [agentTransactions, agentSearchTerm]);
+
+  // Fetch transactions and count on component mount and when filters change
+  useEffect(() => {
+    fetchTransactions();
+    fetchTransactionCount();
+  }, [fetchTransactions]);
+
+  // Fetch agent transactions when tab or filters change
+  useEffect(() => {
+    if (activeTab === "agent") {
+      fetchAgentTransactions();
+    }
+  }, [activeTab, fetchAgentTransactions]);
+
+  // Apply search and filters whenever transactions or searchTerm changes
+  useEffect(() => {
+    applyFiltersAndSearch();
+  }, [applyFiltersAndSearch]);
+
+  // Apply search and filters for agent transactions
+  useEffect(() => {
+    applyAgentFiltersAndSearch();
+  }, [applyAgentFiltersAndSearch]);
 
   // Handle filter changes
   const handleFilterChange = (e) => {
@@ -342,7 +327,7 @@ const handleTransactionStatusUpdate = async (transaction, status) => {
     if (status === "completed") {
       // 1️⃣ BANK DEPOSIT → ADD WALLET ONLY
       if (txType === "deposit" && method.includes("bank")) {
-        const response = await axios.put(
+        await axios.put(
           `${API}/api/transactions/${transactionId}/status`,
           { status: "completed" },
           { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
@@ -362,7 +347,7 @@ const handleTransactionStatusUpdate = async (transaction, status) => {
 
       // 2️⃣ BANK WITHDRAW → DEDUCT WALLET ONLY
       if ((txType === "withdraw" || txType === "withdrawal") && method.includes("bank")) {
-        const response = await axios.put(
+        await axios.put(
           `${API}/api/transactions/${transactionId}/status`,
           { status: "completed" },
           { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }

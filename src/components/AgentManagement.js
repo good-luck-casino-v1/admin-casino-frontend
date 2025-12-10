@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faUserPlus, faEye, faSearch, faUsers, faRedo, 
   faChevronLeft, faChevronRight, faUser, faEnvelope, 
   faPhone, faPercent, faCalendar, faMoneyBillWave, 
   faMoneyCheckAlt, faTicketAlt, faUserFriends, faCoins,
-  faCreditCard, faFileImage, faCheck, faTimes
+  faCheck, faTimes
 } from '@fortawesome/free-solid-svg-icons';
-import { Modal, Button, Form, Alert, Table, InputGroup, FormControl, Row, Col, Spinner, Nav, Tab } from 'react-bootstrap';
+import { Modal, Button, Form, Alert, Table, InputGroup, Row, Col, Spinner, Nav, Tab } from 'react-bootstrap';
 import axios from 'axios';
 
 const AgentManagement = () => {
@@ -52,8 +52,6 @@ const AgentManagement = () => {
   // Form states for transactions
   const [agentId, setAgentId] = useState('');
   const [amount, setAmount] = useState('');
-  const [utr, setUtr] = useState('');
-  const [screenshot, setScreenshot] = useState(null);
   const [selectedDeposit, setSelectedDeposit] = useState(null);
   const [selectedWithdrawal, setSelectedWithdrawal] = useState(null);
   const [selectedTicket, setSelectedTicket] = useState(null);
@@ -63,6 +61,42 @@ const AgentManagement = () => {
   const [withdrawalSearch, setWithdrawalSearch] = useState('');
   const [ticketSearch, setTicketSearch] = useState('');
   const [playerAgentId, setPlayerAgentId] = useState('');
+
+  // Apply filters when agents, search term, or filter values change
+  const applyFilters = useCallback(() => {
+    if (!Array.isArray(agents)) {
+      setFilteredAgents([]);
+      return;
+    }
+
+    let result = [...agents];
+
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(agent => 
+        agent.name?.toLowerCase().includes(term) ||
+        agent.email?.toLowerCase().includes(term) ||
+        agent.mobile?.includes(term) ||
+        agent.commission?.toLowerCase().includes(term)
+      );
+    }
+
+    if (commissionFilter) {
+      result = result.filter(agent => agent.commission === commissionFilter);
+    }
+
+    if (performanceFilter) {
+      result = result.filter(agent => {
+        if (performanceFilter === 'high') return agent.player_count > 50;
+        if (performanceFilter === 'medium') return agent.player_count >= 20 && agent.player_count <= 50;
+        if (performanceFilter === 'low') return agent.player_count < 20;
+        return true;
+      });
+    }
+
+    setFilteredAgents(result);
+    setCurrentPage(1);
+  }, [agents, searchTerm, commissionFilter, performanceFilter]);
 
   // Fetch agents on component mount
   useEffect(() => {
@@ -76,7 +110,7 @@ const AgentManagement = () => {
   // Apply filters when agents, search term, or filter values change
   useEffect(() => {
     applyFilters();
-  }, [agents, searchTerm, commissionFilter, performanceFilter]);
+  }, [applyFilters]);
 
   const fetchAgents = async () => {
     setLoading(true);
@@ -145,40 +179,6 @@ const fetchTickets = async () => {
     }
   };
 
-const applyFilters = () => {
-  if (!Array.isArray(agents)) {
-    setFilteredAgents([]);
-    return;
-  }
-
-  let result = [...agents];
-
-  if (searchTerm) {
-    const term = searchTerm.toLowerCase();
-    result = result.filter(agent => 
-      agent.name?.toLowerCase().includes(term) ||
-      agent.email?.toLowerCase().includes(term) ||
-      agent.mobile?.includes(term) ||
-      agent.commission?.toLowerCase().includes(term)
-    );
-  }
-
-  if (commissionFilter) {
-    result = result.filter(agent => agent.commission === commissionFilter);
-  }
-
-  if (performanceFilter) {
-    result = result.filter(agent => {
-      if (performanceFilter === 'high') return agent.player_count > 50;
-      if (performanceFilter === 'medium') return agent.player_count >= 20 && agent.player_count <= 50;
-      if (performanceFilter === 'low') return agent.player_count < 20;
-      return true;
-    });
-  }
-
-  setFilteredAgents(result);
-  setCurrentPage(1);
-};
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

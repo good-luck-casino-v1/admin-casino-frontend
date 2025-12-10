@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { FaCreditCard, FaMoneyBillWave, FaUniversity, FaMobileAlt, FaCheck, FaTimes, FaEdit, FaTrash, FaPlus, FaRupeeSign, FaLandmark, FaCoins, FaSearch, FaFilter, FaDownload, FaFilePdf } from 'react-icons/fa';
-import { Modal, Button, Form, Alert, Table, Badge, Spinner, Nav, Row, Col, Card, InputGroup, Dropdown, Tab, Tabs } from 'react-bootstrap';
+import React, { useState, useEffect, useCallback } from 'react';
+import { FaCreditCard, FaMoneyBillWave, FaMobileAlt, FaEdit, FaTrash, FaPlus, FaRupeeSign, FaLandmark, FaCoins, FaSearch, FaFilter, FaDownload, FaFilePdf } from 'react-icons/fa';
+import { Modal, Button, Form, Alert, Table, Badge, Spinner, Nav, Row, Col, Card, InputGroup, Dropdown } from 'react-bootstrap';
 import axios from 'axios';
 
 // Conditional import for PDF generation
@@ -39,7 +39,6 @@ const PaymentGatewayTab = ({ isSuperAdmin }) => {
     base_url: ''
   });
   const [editData, setEditData] = useState({});
-  const [selectedMethod, setSelectedMethod] = useState(null);
   
   // New states for filtering and searching
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,6 +64,71 @@ const PaymentGatewayTab = ({ isSuperAdmin }) => {
   // Active tab state
   const [activeTab, setActiveTab] = useState('gateway');
 
+  // Apply filters and search to payment methods
+  const applyFilters = useCallback(() => {
+    let result = [...paymentMethods];
+    
+    // Apply search filter
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(method => 
+        method.name.toLowerCase().includes(term) || 
+        method.description.toLowerCase().includes(term) ||
+        method.merch_id.toLowerCase().includes(term)
+      );
+    }
+    
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      result = result.filter(method => method.status === statusFilter);
+    }
+    
+    // Apply type filter
+    if (typeFilter !== 'all') {
+      result = result.filter(method => method.type === typeFilter);
+    }
+    
+    setFilteredMethods(result);
+  }, [paymentMethods, searchTerm, statusFilter, typeFilter]);
+
+  // Apply filters and search to transactions
+  const applyTransactionFilters = useCallback(() => {
+    let result = [...transactions];
+    
+    // Apply search filter
+    if (transactionSearchTerm) {
+      const term = transactionSearchTerm.toLowerCase();
+      result = result.filter(transaction => {
+        // Safely check each field with null checks and convert to string
+        const name = transaction.name ? String(transaction.name).toLowerCase() : '';
+        const playerId = transaction.player_id ? String(transaction.player_id).toLowerCase() : '';
+        const playerName = transaction.player_name ? String(transaction.player_name).toLowerCase() : '';
+        const transactionId = transaction.transaction_id ? String(transaction.transaction_id).toLowerCase() : '';
+        const merchId = transaction.merch_id ? String(transaction.merch_id).toLowerCase() : '';
+        
+        return (
+          name.includes(term) || 
+          playerId.includes(term) ||
+          playerName.includes(term) ||
+          transactionId.includes(term) ||
+          merchId.includes(term)
+        );
+      });
+    }
+    
+    // Apply status filter
+    if (transactionStatusFilter !== 'all') {
+      result = result.filter(transaction => String(transaction.status) === transactionStatusFilter);
+    }
+    
+    // Apply type filter
+    if (transactionTypeFilter !== 'all') {
+      result = result.filter(transaction => String(transaction.transaction_type) === transactionTypeFilter);
+    }
+    
+    setFilteredTransactions(result);
+  }, [transactions, transactionSearchTerm, transactionStatusFilter, transactionTypeFilter]);
+
   // Fetch payment methods on component mount
   useEffect(() => {
     fetchPaymentMethods();
@@ -77,12 +141,12 @@ const PaymentGatewayTab = ({ isSuperAdmin }) => {
   // Filter payment methods when search or filter criteria change
   useEffect(() => {
     applyFilters();
-  }, [paymentMethods, searchTerm, statusFilter, typeFilter]);
+  }, [applyFilters]);
 
   // Filter transactions when search or filter criteria change
   useEffect(() => {
     applyTransactionFilters();
-  }, [transactions, transactionSearchTerm, transactionStatusFilter, transactionTypeFilter]);
+  }, [applyTransactionFilters]);
 
   // Fetch payment methods from API
   const fetchPaymentMethods = async () => {
@@ -141,70 +205,6 @@ const PaymentGatewayTab = ({ isSuperAdmin }) => {
     }
   };
 
-  // Apply filters and search to payment methods
-  const applyFilters = () => {
-    let result = [...paymentMethods];
-    
-    // Apply search filter
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      result = result.filter(method => 
-        method.name.toLowerCase().includes(term) || 
-        method.description.toLowerCase().includes(term) ||
-        method.merch_id.toLowerCase().includes(term)
-      );
-    }
-    
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      result = result.filter(method => method.status === statusFilter);
-    }
-    
-    // Apply type filter
-    if (typeFilter !== 'all') {
-      result = result.filter(method => method.type === typeFilter);
-    }
-    
-    setFilteredMethods(result);
-  };
-
-  // Apply filters and search to transactions - FIXED VERSION
-  const applyTransactionFilters = () => {
-    let result = [...transactions];
-    
-    // Apply search filter
-    if (transactionSearchTerm) {
-      const term = transactionSearchTerm.toLowerCase();
-      result = result.filter(transaction => {
-        // Safely check each field with null checks and convert to string
-        const name = transaction.name ? String(transaction.name).toLowerCase() : '';
-        const playerId = transaction.player_id ? String(transaction.player_id).toLowerCase() : '';
-        const playerName = transaction.player_name ? String(transaction.player_name).toLowerCase() : '';
-        const transactionId = transaction.transaction_id ? String(transaction.transaction_id).toLowerCase() : '';
-        const merchId = transaction.merch_id ? String(transaction.merch_id).toLowerCase() : '';
-        
-        return (
-          name.includes(term) || 
-          playerId.includes(term) ||
-          playerName.includes(term) ||
-          transactionId.includes(term) ||
-          merchId.includes(term)
-        );
-      });
-    }
-    
-    // Apply status filter
-    if (transactionStatusFilter !== 'all') {
-      result = result.filter(transaction => String(transaction.status) === transactionStatusFilter);
-    }
-    
-    // Apply type filter
-    if (transactionTypeFilter !== 'all') {
-      result = result.filter(transaction => String(transaction.transaction_type) === transactionTypeFilter);
-    }
-    
-    setFilteredTransactions(result);
-  };
 
   // Clear all filters
   const clearFilters = () => {
@@ -236,7 +236,7 @@ const PaymentGatewayTab = ({ isSuperAdmin }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/payment-gateways`, formData);
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/payment-gateways`, formData);
       setAlert({ show: true, message: `Payment method "${formData.name}" created successfully`, variant: 'success' });
       setShowModal(false);
       fetchPaymentMethods();
