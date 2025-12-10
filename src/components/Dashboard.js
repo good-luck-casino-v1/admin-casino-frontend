@@ -8,6 +8,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { Card, Row, Col, Table, Badge, Button, Alert, Spinner, Form } from 'react-bootstrap';
 import axios from 'axios';
+import PullToRefresh from './PullToRefresh';
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState({
@@ -79,6 +80,14 @@ const Dashboard = () => {
     }
   };
 
+  // Pull-to-refresh handler
+  const handleRefresh = async () => {
+    await Promise.all([
+      fetchDashboardData(),
+      fetchAdminData()
+    ]);
+  };
+
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
     return new Date(dateString).toLocaleDateString(undefined, options);
@@ -129,11 +138,12 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="container-fluid p-4" style={{ backgroundColor: '#1a1a1a', color: '#ffffff', minHeight: '100vh' }}>
-      <h1 className="text-center mb-4">
-        <span style={{ color: 'red' }}>Admin</span> 
-        <span style={{ color: '#10b981' }}> Dashboard</span>
-      </h1>
+    <PullToRefresh onRefresh={handleRefresh}>
+      <div className="container-fluid p-4" style={{ backgroundColor: '#1a1a1a', color: '#ffffff', minHeight: '100vh' }}>
+        <h1 className="text-center mb-4">
+          <span style={{ color: 'red' }}>Admin</span> 
+          <span style={{ color: '#10b981' }}> Dashboard</span>
+        </h1>
       
       {/* Stats Cards */}
       <Row className="mb-4">
@@ -315,14 +325,14 @@ const Dashboard = () => {
           <Card className="bg-dark text-light border-secondary">
             <Card.Header className="d-flex justify-content-between align-items-center">
               <Card.Title className='text-danger fw-4'><FontAwesomeIcon icon={faUserShield} className="me-2 text-danger" />Admin Management</Card.Title>
-              <div className="d-flex align-items-center">
+              <div className="d-flex align-items-center w-100">
                 <Form.Control
                   type="text"
                   placeholder="Search by ID, Name, Email, Mobile"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="bg-dark text-white border-secondary me-2"
-                  style={{ width: '250px' }}
+                  style={{ width: '100%', maxWidth: '250px' }}
                 />
               </div>
             </Card.Header>
@@ -437,7 +447,8 @@ const Dashboard = () => {
           </Card>
         </Col>
       </Row>
-    </div>
+      </div>
+    </PullToRefresh>
   );
 };
 

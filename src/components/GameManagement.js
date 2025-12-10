@@ -378,11 +378,11 @@ const GameManagement = () => {
       </div>
       
       {/* Filters and Search */}
-      <div className="row mb-4">
-        <div className="col-md-8 mb-3 mb-md-0">
-          <div className="d-flex flex-wrap">
-            <div className="me-2 mb-2 flex-grow-1" style={{ minWidth: '120px' }}>
-              <Form.Select name="category" value={filters.category} onChange={handleFilterChange}>
+      <div className="row mb-4 g-2">
+        <div className="col-12 col-md-8 mb-3 mb-md-0">
+          <div className="d-flex flex-wrap gap-2">
+            <div className="flex-grow-1" style={{ minWidth: '120px' }}>
+              <Form.Select name="category" value={filters.category} onChange={handleFilterChange} className="w-100">
                 <option value="">All Categories</option>
                 <option value="slots">Slots</option>
                 <option value="table">Table</option>
@@ -392,26 +392,26 @@ const GameManagement = () => {
                 <option value="tournaments">Tournaments</option>
               </Form.Select>
             </div>
-            <div className="me-2 mb-2 flex-grow-1" style={{ minWidth: '120px' }}>
-              <Form.Select name="status" value={filters.status} onChange={handleFilterChange}>
+            <div className="flex-grow-1" style={{ minWidth: '120px' }}>
+              <Form.Select name="status" value={filters.status} onChange={handleFilterChange} className="w-100">
                 <option value="">All Status</option>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
               </Form.Select>
             </div>
-            <Button variant="warning" onClick={resetFilters} className="mb-2">
+            <Button variant="warning" onClick={resetFilters} className="mb-2 mb-md-0">
               <FontAwesomeIcon icon={faRedo} /> <span className="d-none d-sm-inline">Reset</span>
             </Button>
           </div>
         </div>
-        <div className="col-md-4">
-          <div className="input-group">
+        <div className="col-12 col-md-4">
+          <div className="input-group w-100">
             <span className="input-group-text bg-dark text-light">
               <FontAwesomeIcon icon={faSearch} />
             </span>
             <Form.Control
               type="text"
-              placeholder="Search by ID, name, category or codes"
+              placeholder="Search games..."
               value={searchTerm}
               onChange={handleSearch}
               className="bg-dark text-light"

@@ -504,13 +504,14 @@ const fetchTickets = async () => {
             </div>
             
             {/* Filters and Search */}
-            <div className="row mb-4">
-              <div className="col-md-8 mb-3 mb-md-0">
-                <div className="d-flex flex-wrap">
-                  <div className="me-2 mb-2 flex-grow-1" style={{ minWidth: '120px' }}>
+            <div className="row mb-4 g-2">
+              <div className="col-12 col-md-8 mb-3 mb-md-0">
+                <div className="d-flex flex-wrap gap-2">
+                  <div className="flex-grow-1" style={{ minWidth: '120px' }}>
                     <Form.Select 
                       value={commissionFilter} 
                       onChange={(e) => setCommissionFilter(e.target.value)}
+                      className="w-100"
                     >
                       <option value="">All Commissions</option>
                       <option value="5%">5%</option>
@@ -519,10 +520,11 @@ const fetchTickets = async () => {
                       <option value="20%">20%</option>
                     </Form.Select>
                   </div>
-                  <div className="me-2 mb-2 flex-grow-1" style={{ minWidth: '120px' }}>
+                  <div className="flex-grow-1" style={{ minWidth: '120px' }}>
                     <Form.Select 
                       value={performanceFilter} 
                       onChange={(e) => setPerformanceFilter(e.target.value)}
+                      className="w-100"
                     >
                       <option value="">All Performance Levels</option>
                       <option value="high">High Performance</option>
@@ -530,13 +532,13 @@ const fetchTickets = async () => {
                       <option value="low">Low Performance</option>
                     </Form.Select>
                   </div>
-                  <Button variant="warning" onClick={resetFilters} className="mb-2">
+                  <Button variant="warning" onClick={resetFilters} className="mb-2 mb-md-0">
                     <FontAwesomeIcon icon={faRedo} /> <span className="d-none d-sm-inline">Reset</span>
                   </Button>
                 </div>
               </div>
-              <div className="col-md-4">
-                <div className="input-group">
+              <div className="col-12 col-md-4">
+                <div className="input-group w-100">
                   <span className="input-group-text bg-dark text-light">
                     <FontAwesomeIcon icon={faSearch} />
                   </span>

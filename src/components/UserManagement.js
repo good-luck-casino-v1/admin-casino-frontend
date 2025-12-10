@@ -10,6 +10,7 @@
   import { Modal, Button, Form, Alert, Table, Badge, Spinner, Nav, Row, Col } from 'react-bootstrap';
   import axios from 'axios';
   import '../App.css';
+  import PullToRefresh from './PullToRefresh';
 
   const UserManagement = () => {
     // State declarations
@@ -71,6 +72,14 @@
       } catch (error) {
         console.error('Error fetching user count:', error);
       }
+    };
+    
+    // Pull-to-refresh handler
+    const handleRefresh = async () => {
+      await Promise.all([
+        fetchUsers(),
+        fetchUserCount()
+      ]);
     };
     
     // Apply search and filters
@@ -378,7 +387,8 @@ const handleTransactionStatusUpdate = async (tx, status) => {
     const paginateTransactions = (pageNumber) => setTransactionsPage(pageNumber);
     
     return (
-      <div className="container-fluid p-4" style={{ backgroundColor: '#1a1a1a', color: '#ffffff', minHeight: '100vh' }}>
+      <PullToRefresh onRefresh={handleRefresh}>
+        <div className="container-fluid p-4" style={{ backgroundColor: '#1a1a1a', color: '#ffffff', minHeight: '100vh' }}>
         {/* Custom styles for mobile responsiveness */}
         <style jsx>{`
           @media (max-width: 768px) {
@@ -506,36 +516,36 @@ const handleTransactionStatusUpdate = async (tx, status) => {
         </div>
         
         {/* Filters and Search */}
-        <div className="row mb-4">
-          <div className="col-md-8 mb-3 mb-md-0">
-            <div className="d-flex flex-wrap">
-              <div className="me-2 mb-2 flex-grow-1" style={{ minWidth: '120px' }}>
-                <Form.Select name="role" value={filters.role} onChange={handleFilterChange}>
+        <div className="row mb-4 g-2">
+          <div className="col-12 col-md-8 mb-3 mb-md-0">
+            <div className="d-flex flex-wrap gap-2">
+              <div className="flex-grow-1" style={{ minWidth: '120px' }}>
+                <Form.Select name="role" value={filters.role} onChange={handleFilterChange} className="w-100">
                   <option value="">All Roles</option>
                   <option value="Player">Player</option>
                   <option value="Prime Player">Prime Player</option>
                 </Form.Select>
               </div>
-              <div className="me-2 mb-2 flex-grow-1" style={{ minWidth: '120px' }}>
-                <Form.Select name="status" value={filters.status} onChange={handleFilterChange}>
+              <div className="flex-grow-1" style={{ minWidth: '120px' }}>
+                <Form.Select name="status" value={filters.status} onChange={handleFilterChange} className="w-100">
                   <option value="">All Status</option>
                   <option value="active">Active</option>
                   <option value="suspended">Suspended</option>
                 </Form.Select>
               </div>
-              <Button variant="warning" onClick={resetFilters} className="mb-2">
+              <Button variant="warning" onClick={resetFilters} className="mb-2 mb-md-0">
                 <FontAwesomeIcon icon={faRedo} /> <span className="d-none d-sm-inline">Reset</span>
               </Button>
             </div>
           </div>
-          <div className="col-md-4">
-            <div className="input-group">
+          <div className="col-12 col-md-4">
+            <div className="input-group w-100">
               <span className="input-group-text bg-dark text-light">
                 <FontAwesomeIcon icon={faSearch} />
               </span>
               <Form.Control
                 type="text"
-                placeholder="Search by ID, name, email or mobile"
+                placeholder="Search users..."
                 value={searchTerm}
                 onChange={handleSearch}
                 className="bg-dark text-light"
@@ -668,7 +678,8 @@ const handleTransactionStatusUpdate = async (tx, status) => {
                   Mobile
                 </Form.Label>
                 <Form.Control
-                  type="text"
+                  type="tel"
+                  inputMode="tel"
                   name="mobile"
                   value={formData.mobile}
                   onChange={handleInputChange}
@@ -714,6 +725,7 @@ const handleTransactionStatusUpdate = async (tx, status) => {
                 </Form.Label>
                 <Form.Control
                   type="number"
+                  inputMode="decimal"
                   name="wallet_balance"
                   value={formData.wallet_balance}
                   onChange={handleInputChange}
@@ -1201,7 +1213,8 @@ const handleTransactionStatusUpdate = async (tx, status) => {
             </Button>
           </Modal.Footer>
         </Modal>
-      </div>
+        </div>
+      </PullToRefresh>
     );
   };
 

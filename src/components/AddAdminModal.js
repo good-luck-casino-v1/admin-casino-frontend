@@ -43,7 +43,7 @@ const AddAdminModal = ({ show, onClose, refreshAdminList }) => {
     
     setLoading(true);
    try {
-  const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/adminadd/add`,
+  await axios.post(`${process.env.REACT_APP_API_URL}/api/adminadd/add`,
     formData
   );
       alert('Admin added successfully!');

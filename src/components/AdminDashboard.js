@@ -15,6 +15,8 @@ import SecurityTab from './Security';
 import PaymentGatewayTab from './PaymentGateway'; // Import PaymentGatewayTab
 // Import Add Admin Modal
 import AddAdminModal from './AddAdminModal';
+// Import PullToRefresh
+import PullToRefresh from './PullToRefresh';
 
 const AdminDashboard = () => {
   // Get admin data from localStorage
@@ -83,6 +85,31 @@ const AdminDashboard = () => {
   };
 }, [previewPhoto]);
 
+  // Prevent body scroll when modals are open
+  useEffect(() => {
+    const hasOpenModal = showProfileModal || showEditProfileModal || 
+                        showPasswordModal || showTicketsModal || 
+                        showTicketDetailModal || showAddAdminModal;
+    
+    if (hasOpenModal) {
+      document.body.style.overflow = 'hidden';
+      // Prevent scroll on iOS
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    } else {
+      document.body.style.overflow = 'unset';
+      document.body.style.position = 'unset';
+      document.body.style.width = 'unset';
+    }
+    
+    return () => {
+      document.body.style.overflow = 'unset';
+      document.body.style.position = 'unset';
+      document.body.style.width = 'unset';
+    };
+  }, [showProfileModal, showEditProfileModal, showPasswordModal, 
+      showTicketsModal, showTicketDetailModal, showAddAdminModal]);
+
   
   const fetchTicketCount = async () => {
     try {
@@ -101,6 +128,20 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error fetching tickets:', error);
       setTickets([]); // Set to empty array on error
+    }
+  };
+  
+  // Pull-to-refresh handler
+  const handleRefresh = async () => {
+    try {
+      await Promise.all([
+        fetchTicketCount(),
+        fetchTickets()
+      ]);
+      toast.success('Refreshed successfully!');
+    } catch (error) {
+      console.error('Refresh error:', error);
+      toast.error('Failed to refresh');
     }
   };
   
@@ -274,7 +315,7 @@ return (
   <div className="min-vh-100 bg-dark text-white">
     {/* Admin Navbar - Fixed */}
     <nav className="navbar navbar-expand-lg navbar-dark bg-success fixed-top">
-      <div className="container-fluid d-flex justify-content-between align-items-center px-3 pe-5">
+      <div className="container-fluid d-flex justify-content-between align-items-center px-3">
         
         {/* Left side - Logo + Brand Name */}
         <div className="d-flex align-items-center">
@@ -293,7 +334,7 @@ return (
         </div>
           
           {/* Custom Dropdown */}
-          <div className="dropdown me-5" ref={dropdownRef}>
+          <div className="dropdown me-3" ref={dropdownRef}>
             <button 
               className="btn btn-light d-flex align-items-center" 
               type="button" 
@@ -310,21 +351,36 @@ return (
                 }
                 alt="Admin"
                 className="rounded-circle me-2"
-                width="25"
-                height="25"
+                width="30"
+                height="30"
               />
 
               ) : (
                 <div className="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" 
-                     style={{ width: '25px', height: '25px' }}>
+                     style={{ width: '30px', height: '30px' }}>
                   <FaUser />
                 </div>
               )}
-              {admin.name}
+              <span className="d-none d-sm-inline">{admin.name}</span>
             </button>
             
             {showDropdown && (
-              <ul className="dropdown-menu dropdown-menu-sm-start dropdown-menu-dark show" style={{ zIndex: 1050,textAlign:'left',fontSize:'14px' }}>
+              <>
+                {/* Mobile overlay backdrop */}
+                <div 
+                  className="dropdown-backdrop d-md-none"
+                  onClick={() => setShowDropdown(false)}
+                  style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    zIndex: 1050
+                  }}
+                />
+                <ul className="dropdown-menu dropdown-menu-end dropdown-menu-dark show mobile-dropdown-full" style={{ zIndex: 1051 }}>
                 <li>
                   <button 
                     className="dropdown-item d-flex align-items-center"
@@ -385,6 +441,7 @@ return (
                   </button>
                 </li>
               </ul>
+              </>
             )}
           </div>
         </div>
@@ -416,7 +473,9 @@ return (
           
           {/* Content Area (80% width on desktop, 100% on mobile) */}
           <div className="col-12 col-md-10 p-3 pb-5 ms-auto" style={{ marginLeft: '16.666667%' }}>
-            {renderActiveTab()}
+            <PullToRefresh onRefresh={handleRefresh}>
+              {renderActiveTab()}
+            </PullToRefresh>
           </div>
         </div>
       </div>
@@ -606,7 +665,8 @@ return (
           <div className="mb-3">
             <label className="form-label">Mobile</label>
             <input
-              type="text"
+              type="tel"
+              inputMode="tel"
               className="form-control bg-secondary text-white"
               value={editProfile.mobile || ''}
               onChange={(e) => setEditProfile({ ...editProfile, mobile: e.target.value })}
@@ -617,6 +677,7 @@ return (
             <label className="form-label">Email</label>
             <input
               type="email"
+              inputMode="email"
               className="form-control bg-secondary text-white"
               value={editProfile.email}
               onChange={(e) => setEditProfile({ ...editProfile, email: e.target.value })}
@@ -665,6 +726,7 @@ return (
                   <div className="input-group">
                     <input 
                       type={showOldPassword ? "text" : "password"} 
+                      inputMode="text"
                       className="form-control bg-secondary text-white" 
                       value={passwordData.oldPassword}
                       onChange={(e) => setPasswordData({...passwordData, oldPassword: e.target.value})}
@@ -684,6 +746,7 @@ return (
                   <div className="input-group">
                     <input 
                       type={showNewPassword ? "text" : "password"} 
+                      inputMode="text"
                       className="form-control bg-secondary text-white" 
                       value={passwordData.newPassword}
                       onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
@@ -703,6 +766,7 @@ return (
                   <div className="input-group">
                     <input 
                       type={showConfirmPassword ? "text" : "password"} 
+                      inputMode="text"
                       className="form-control bg-secondary text-white" 
                       value={passwordData.confirmPassword}
                       onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}

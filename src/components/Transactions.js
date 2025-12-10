@@ -727,17 +727,18 @@ const handleTransactionStatusUpdate = async (transaction, status) => {
                   ) : (
                     <>
                       {/* Filters and Search */}
-                      <div className="row mb-4">
-                        <div className="col-md-8 mb-3 mb-md-0">
-                          <div className="d-flex flex-wrap">
+                      <div className="row mb-4 g-2">
+                        <div className="col-12 col-md-8 mb-3 mb-md-0">
+                          <div className="d-flex flex-wrap gap-2">
                             <div
-                              className="me-2 mb-2 flex-grow-1"
+                              className="flex-grow-1"
                               style={{ minWidth: "120px" }}
                             >
                               <Form.Select
                                 name="type"
                                 value={filters.type}
                                 onChange={handleFilterChange}
+                                className="w-100"
                               >
                                 <option value="">All Types</option>
                                 <option value="deposit">Deposit</option>
@@ -747,24 +748,21 @@ const handleTransactionStatusUpdate = async (transaction, status) => {
                             <Button
                               variant="warning"
                               onClick={resetFilters}
-                              className="mb-2"
+                              className="mb-2 mb-md-0"
                             >
                               <FontAwesomeIcon icon={faRedo} />{" "}
                               <span className="d-none d-sm-inline">Reset</span>
                             </Button>
                           </div>
                         </div>
-                        <div className="col-md-4">
-                          <div className="input-group">
-                            <span
-                              className="input-group-text 
-                            bg-dark text-light"
-                            >
+                        <div className="col-12 col-md-4">
+                          <div className="input-group w-100">
+                            <span className="input-group-text bg-dark text-light">
                               <FontAwesomeIcon icon={faSearch} />
                             </span>
                             <Form.Control
                               type="text"
-                              placeholder="Search by ID, User ID, Transaction ID or UTR"
+                              placeholder="Search transactions..."
                               value={searchTerm}
                               onChange={handleSearch}
                               className="bg-dark text-light"
@@ -1025,17 +1023,18 @@ const handleTransactionStatusUpdate = async (transaction, status) => {
                   ) : (
                     <>
                       {/* Filters and Search */}
-                      <div className="row mb-4">
-                        <div className="col-md-8 mb-3 mb-md-0">
-                          <div className="d-flex flex-wrap">
+                      <div className="row mb-4 g-2">
+                        <div className="col-12 col-md-8 mb-3 mb-md-0">
+                          <div className="d-flex flex-wrap gap-2">
                             <div
-                              className="me-2 mb-2 flex-grow-1"
+                              className="flex-grow-1"
                               style={{ minWidth: "120px" }}
                             >
                               <Form.Select
                                 name="type"
                                 value={agentFilters.type}
                                 onChange={handleAgentFilterChange}
+                                className="w-100"
                               >
                                 <option value="">All Types</option>
                                 <option value="deposit">Deposit</option>
@@ -1045,21 +1044,21 @@ const handleTransactionStatusUpdate = async (transaction, status) => {
                             <Button
                               variant="warning"
                               onClick={resetAgentFilters}
-                              className="mb-2"
+                              className="mb-2 mb-md-0"
                             >
                               <FontAwesomeIcon icon={faRedo} />{" "}
                               <span className="d-none d-sm-inline">Reset</span>
                             </Button>
                           </div>
                         </div>
-                        <div className="col-md-4">
-                          <div className="input-group">
+                        <div className="col-12 col-md-4">
+                          <div className="input-group w-100">
                             <span className="input-group-text bg-dark text-light">
                               <FontAwesomeIcon icon={faSearch} />
                             </span>
                             <Form.Control
                               type="text"
-                              placeholder="Search by ID or Agent ID"
+                              placeholder="Search agent transactions..."
                               value={agentSearchTerm}
                               onChange={handleAgentSearch}
                               className="bg-dark text-light"
