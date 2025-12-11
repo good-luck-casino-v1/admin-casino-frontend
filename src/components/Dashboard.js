@@ -8,7 +8,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { Card, Row, Col, Table, Badge, Button, Alert, Spinner, Form } from 'react-bootstrap';
 import axios from 'axios';
-import PullToRefresh from './PullToRefresh';
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState({
@@ -80,14 +79,6 @@ const Dashboard = () => {
     }
   };
 
-  // Pull-to-refresh handler
-  const handleRefresh = async () => {
-    await Promise.all([
-      fetchDashboardData(),
-      fetchAdminData()
-    ]);
-  };
-
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
     return new Date(dateString).toLocaleDateString(undefined, options);
@@ -138,8 +129,7 @@ const Dashboard = () => {
   }
 
   return (
-    <PullToRefresh onRefresh={handleRefresh}>
-      <div className="container-fluid p-4" style={{ backgroundColor: '#1a1a1a', color: '#ffffff', minHeight: '100vh' }}>
+    <div className="container-fluid p-4" style={{ backgroundColor: '#1a1a1a', color: '#ffffff', minHeight: '100vh' }}>
         <h1 className="text-center mb-4">
           <span style={{ color: 'red' }}>Admin</span> 
           <span style={{ color: '#10b981' }}> Dashboard</span>
@@ -227,7 +217,7 @@ const Dashboard = () => {
               </div>
               <div>
                 <Card.Title className="fs-6">Total Super Admin</Card.Title>
-                <Card.Text className="fs-6">{dashboardData.totalSuperAdmin-1 || 0}</Card.Text>
+                <Card.Text className="fs-6">{dashboardData.totalSuperAdmin || 0}</Card.Text>
               </div>
             </Card.Body>
           </Card>
@@ -447,8 +437,7 @@ const Dashboard = () => {
           </Card>
         </Col>
       </Row>
-      </div>
-    </PullToRefresh>
+    </div>
   );
 };
 

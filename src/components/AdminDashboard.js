@@ -15,8 +15,6 @@ import SecurityTab from './Security';
 import PaymentGatewayTab from './PaymentGateway'; // Import PaymentGatewayTab
 // Import Add Admin Modal
 import AddAdminModal from './AddAdminModal';
-// Import PullToRefresh
-import PullToRefresh from './PullToRefresh';
 
 const AdminDashboard = () => {
   // Get admin data from localStorage
@@ -128,20 +126,6 @@ const AdminDashboard = () => {
     } catch (error) {
       console.error('Error fetching tickets:', error);
       setTickets([]); // Set to empty array on error
-    }
-  };
-  
-  // Pull-to-refresh handler
-  const handleRefresh = async () => {
-    try {
-      await Promise.all([
-        fetchTicketCount(),
-        fetchTickets()
-      ]);
-      toast.success('Refreshed successfully!');
-    } catch (error) {
-      console.error('Refresh error:', error);
-      toast.error('Failed to refresh');
     }
   };
   
@@ -473,9 +457,7 @@ return (
           
           {/* Content Area (80% width on desktop, 100% on mobile) */}
           <div className="col-12 col-md-10 p-3 pb-5 ms-auto" style={{ marginLeft: '16.666667%' }}>
-            <PullToRefresh onRefresh={handleRefresh}>
-              {renderActiveTab()}
-            </PullToRefresh>
+            {renderActiveTab()}
           </div>
         </div>
       </div>

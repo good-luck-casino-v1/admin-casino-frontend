@@ -10,7 +10,6 @@
   import { Modal, Button, Form, Alert, Table, Badge, Spinner, Nav, Row, Col } from 'react-bootstrap';
   import axios from 'axios';
   import '../App.css';
-  import PullToRefresh from './PullToRefresh';
 
   const UserManagement = () => {
     // State declarations
@@ -72,14 +71,6 @@
       } catch (error) {
         console.error('Error fetching user count:', error);
       }
-    };
-    
-    // Pull-to-refresh handler
-    const handleRefresh = async () => {
-      await Promise.all([
-        fetchUsers(),
-        fetchUserCount()
-      ]);
     };
     
     // Apply search and filters
@@ -387,8 +378,7 @@ const handleTransactionStatusUpdate = async (tx, status) => {
     const paginateTransactions = (pageNumber) => setTransactionsPage(pageNumber);
     
     return (
-      <PullToRefresh onRefresh={handleRefresh}>
-        <div className="container-fluid p-4" style={{ backgroundColor: '#1a1a1a', color: '#ffffff', minHeight: '100vh' }}>
+      <div className="container-fluid p-4" style={{ backgroundColor: '#1a1a1a', color: '#ffffff', minHeight: '100vh' }}>
         {/* Custom styles for mobile responsiveness */}
         <style jsx>{`
           @media (max-width: 768px) {
@@ -1213,8 +1203,7 @@ const handleTransactionStatusUpdate = async (tx, status) => {
             </Button>
           </Modal.Footer>
         </Modal>
-        </div>
-      </PullToRefresh>
+      </div>
     );
   };
 
