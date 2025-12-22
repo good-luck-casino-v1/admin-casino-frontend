@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FaUser, FaLock, FaEye, FaEyeSlash, FaEnvelope } from 'react-icons/fa';
 import { toast, ToastContainer } from 'react-toastify';
@@ -12,6 +12,17 @@ const AdminLogin = () => {
   const [loading, setLoading] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
+
+  // Check if user is already logged in - redirect to dashboard if so
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const adminData = localStorage.getItem('adminData');
+    
+    if (token && adminData) {
+      // User is already logged in, redirect to dashboard
+      window.location.href = '/admin/dashboard';
+    }
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();

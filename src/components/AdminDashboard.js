@@ -302,7 +302,12 @@ return (
       <div className="container-fluid d-flex justify-content-between align-items-center px-3">
         
         {/* Left side - Logo + Brand Name */}
-        <div className="d-flex align-items-center">
+        <button
+          className="d-flex align-items-center bg-transparent border-0 p-0"
+          onClick={() => setActiveTab('Dashboard')}
+          style={{ cursor: 'pointer' }}
+          type="button"
+        >
           <img
             src="/images/goodluck-logo.png"
             alt="GoodLuck Casino"
@@ -315,7 +320,7 @@ return (
           >
             GOODLUCK CASINO
           </span>
-        </div>
+        </button>
           
           {/* Custom Dropdown */}
           <div className="dropdown me-3" ref={dropdownRef}>
@@ -349,22 +354,7 @@ return (
             </button>
             
             {showDropdown && (
-              <>
-                {/* Mobile overlay backdrop */}
-                <div 
-                  className="dropdown-backdrop d-md-none"
-                  onClick={() => setShowDropdown(false)}
-                  style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    zIndex: 1050
-                  }}
-                />
-                <ul className="dropdown-menu dropdown-menu-end dropdown-menu-dark show mobile-dropdown-full" style={{ zIndex: 1051 }}>
+              <ul className="dropdown-menu dropdown-menu-end dropdown-menu-dark show" style={{ zIndex: 1051 }}>
                 <li>
                   <button 
                     className="dropdown-item d-flex align-items-center"
@@ -425,7 +415,6 @@ return (
                   </button>
                 </li>
               </ul>
-              </>
             )}
           </div>
         </div>
